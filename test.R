@@ -1,6 +1,8 @@
 # install.packages("devtools")
 devtools::install_github("wklimowicz/tidyusoc")
 
+rm(list = ls())
+
 library(tidyusoc)
 library(dplyr)
 
