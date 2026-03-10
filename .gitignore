@@ -1,2 +1,30 @@
 # Ignore all PDF files
 *.pdf
+
+# LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+
+# LaTeX intermediate files
+*.nav
+*.snm
+*.vrb
+*.xdv
+
+# Latexmk
+latexmkrc
+
+# Temporary files
+*.tmp
+*.temp
