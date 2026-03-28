@@ -8,7 +8,7 @@ library(AER)
 library(plm)
 library(stargazer)
 
-setwd("C:/Users/tp01040/Downloads/msc-dissertation-roe-r")
+setwd("C:/Users/tp01040/Downloads/msc-dissertation-roe/Data")
 
 # Create raw data (run only once, if needed)
 usoc_convert(
@@ -28,4 +28,5 @@ source("data_cleaning.R")
 
 # STEP 2: RUN MODEL
 source("models.R")
+
 

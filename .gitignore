@@ -30,5 +30,6 @@ latexmkrc
 *.temp
 
 # Datafile
-Data/UKDA-6614-spss
+Data/UKDA-6614-spss/
+Data/.Rhistory
 
