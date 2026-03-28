@@ -28,3 +28,7 @@ latexmkrc
 # Temporary files
 *.tmp
 *.temp
+
+# Datafile
+Data/UKDA-6614-spss
+
