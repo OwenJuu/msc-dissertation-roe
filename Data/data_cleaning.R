@@ -8,6 +8,8 @@ usoc_clean <- usoc %>%
   group_by(pidp) %>%
   filter(first(age) <= 18) %>% #We must starts from 18 years old, otherwise we can't count expyrs
   mutate(
+    pidp = as.integer(pidp),
+    year = as.integer(as.character(year)),
     race = first(race[!race %in% c(NA, "inapplicable")]), #Filling in all the missing race value
     
     # Create highest qualification variable
@@ -48,7 +50,8 @@ usoc_clean <- usoc %>%
 usoc_clean <- left_join(usoc_clean, NLW, by = "year")
 
 # FINAL DATASET
-usoc_final <- usoc_clean %>%
+usoc_df <- usoc_clean %>%
   select(pidp, year, lwage, middleSchool, highSchool, undergrad, higherEd, expyrs, 
          NLW)
-usoc_final<- pdata.frame(usoc_final, index = c("pidp", "year"))
+usoc_tsibble <- usoc_df %>% as_tsibble(key = pidp, index = year)
+usoc_plm<- pdata.frame(usoc_df, index = c("pidp", "year"))
