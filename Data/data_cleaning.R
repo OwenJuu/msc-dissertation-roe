@@ -1,5 +1,5 @@
 # data_cleaning.R
-NLW <- read.csv("NLW.csv")
+macro <- read.csv("macro.csv")
 
 # CLEAN DATA
 usoc_clean <- usoc %>%
@@ -43,15 +43,17 @@ usoc_clean <- usoc %>%
     expyrs = cumsum(isWorking),
     
     #Calculating log of wage
-    lwage = log(fimnlabgrs_dv + 1), #TODO: change this later
+    lwage = log(fimnlabgrs_dv + 1), #TODO: change this later,
+    ROSLA2013 = if_else(year >= 2013, 1, 0),
+    ROSLA2015 = if_else(year >= 2015, 1, 0)
   )
 
 #Import NLW variable into the dataset
-usoc_clean <- left_join(usoc_clean, NLW, by = "year")
+usoc_clean <- left_join(usoc_clean, macro, by = "year")
 
 # FINAL DATASET
 usoc_df <- usoc_clean %>%
   select(pidp, year, lwage, middleSchool, highSchool, undergrad, higherEd, expyrs, 
-         NLW)
+         NLW, unemp, ROSLA2013, ROSLA2015)
 usoc_tsibble <- usoc_df %>% as_tsibble(key = pidp, index = year)
 usoc_plm<- pdata.frame(usoc_df, index = c("pidp", "year"))

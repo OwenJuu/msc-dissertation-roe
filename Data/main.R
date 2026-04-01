@@ -17,12 +17,10 @@ library(modelsummary)
 library(tsibble)
 library(pandoc)
 
-
-setwd("C:/Users/tp01040/Downloads/msc-dissertation-roe/Data")
-
 # ------------------------------
 # Compile raw data (run only once, if needed)
 # ------------------------------
+setwd("C:/Users/tp01040/Downloads/msc-dissertation-roe/Data")
 usoc_convert(
   usoc_directory = "UKDA-6614-spss/spss/spss28",
   new_directory = "rds",
@@ -45,7 +43,7 @@ source("data_cleaning.R")
 # ------------------------------
 
 source("models.R")
-
+summary(m3_fd_ols_check)
 modelsummary(
   list(
     "FD"              = fd_model,
