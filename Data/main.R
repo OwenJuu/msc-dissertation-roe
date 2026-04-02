@@ -1,4 +1,4 @@
-# Install packages
+# Preample
 install.packages("devtools")
 devtools::install_github("wklimowicz/tidyusoc")
 install.packages("tidyverse")
@@ -16,32 +16,23 @@ library(did)         # Callaway & Sant'Anna
 library(modelsummary)
 library(tsibble)
 library(pandoc)
-
-# ------------------------------
-# Compile raw data (run only once, if needed)
-# ------------------------------
 setwd("C:/Users/tp01040/Downloads/msc-dissertation-roe/Data")
+
+# Compile raw data (run only once)
 usoc_convert(
   usoc_directory = "UKDA-6614-spss/spss/spss28",
   new_directory = "rds",
   filter_files = "indresp",
 )
 
-# ------------------------------
-# STEP 1: CLEAN DATA
-# ------------------------------
+# Clean data
 rm(list = ls())
-
 usoc <- usoc_compile(
   directory = "rds"
 )
-
 source("data_cleaning.R")
 
-# ------------------------------
-# STEP 2: RUN MODEL AND EXPORT MODEL SUMMARY
-# ------------------------------
-
+# Run model and export model summary
 source("models.R")
 summary(m3_fd_ols_check)
 modelsummary(
