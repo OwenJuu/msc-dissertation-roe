@@ -15,7 +15,7 @@ usoc_clean <- usoc %>%
     # Create highest qualification variable
     hiqual_dv = str_to_lower(hiqual_dv),
     hiqual_dv = str_trim(hiqual_dv),
-    hiqual_cat = case_when(
+    hiqual = case_when(
       hiqual_dv %in% c("no qualification", "no qual") ~ "0_noqual",
       hiqual_dv %in% c("gcse etc") ~ "1_gcse",
       hiqual_dv %in% c("a level etc", "a-level etc") ~ "2_ALevel",
@@ -25,10 +25,10 @@ usoc_clean <- usoc %>%
     ),
     
     # Create binary educ variable
-    GCSE = ifelse(hiqual_cat %in% c("0_noqual", NA), 0, 1),
-    ALevel = ifelse(hiqual_cat %in% c("0_noqual", "1_gcse", NA), 0, 1),
-    Undergrad = ifelse(hiqual_cat %in% c("0_noqual", "1_gcse", "2_ALevel", NA), 0, 1),
-    HigherEd = ifelse(hiqual_cat %in% c("0_noqual", "1_gcse", "2_ALevel", "3_undergrad", NA), 0, 1),
+    GCSE = ifelse(hiqual %in% c("0_noqual", NA), 0, 1),
+    ALevel = ifelse(hiqual %in% c("0_noqual", "1_gcse", NA), 0, 1),
+    Undergrad = ifelse(hiqual %in% c("0_noqual", "1_gcse", "2_ALevel", NA), 0, 1),
+    HigherEd = ifelse(hiqual %in% c("0_noqual", "1_gcse", "2_ALevel", "3_undergrad", NA), 0, 1),
     
     #Handling expryrs
     jbstat = str_to_lower(jbstat),
@@ -46,8 +46,13 @@ usoc_clean <- usoc %>%
     
     #Calculating log of wage
     lwage = log(fimnlabgrs_dv + 1), #TODO: change this later,
-    ROSLA2013 = if_else(year >= 2013, 1, 0),
-    ROSLA2015 = if_else(year >= 2015, 1, 0)
+    
+    #ROSLA instruments
+    affected_2013 = as.integer(any(isWorking == 0 & year >= 2013, na.rm = TRUE)),
+    affected_2015 = as.integer(any(isWorking == 0 & year >= 2015, na.rm = TRUE)),
+    ROSLA2013 = if_else(year >= 2013, affected_2013, 0L),
+    ROSLA2015 = if_else(year >= 2015, affected_2015, 0L),
+    child = nchild_dv
   )
 
 #Import NLW variable into the dataset
@@ -55,8 +60,8 @@ usoc_clean <- left_join(usoc_clean, macro, by = "year")
 
 # FINAL DATASET
 usoc_df <- usoc_clean %>%
-  select(pidp, year, lwage, GCSE, ALevel, Undergrad, HigherEd, expyrs, 
-         NLW, unemp, ROSLA2013, ROSLA2015)  %>%
+  select(pidp, year, lwage, hiqual, GCSE, ALevel, Undergrad, HigherEd, expyrs, 
+         NLW, unemp, ROSLA2013, ROSLA2015, isWorking, child)  %>%
   arrange(pidp, year) %>%
   group_by(pidp)
 usoc_tsibble <- usoc_df %>% as_tsibble(key = pidp, index = year)
