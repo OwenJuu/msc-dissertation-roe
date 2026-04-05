@@ -4,6 +4,7 @@ devtools::install_github("wklimowicz/tidyusoc")
 install.packages("tidyverse")
 install.packages("tsibble")
 install.packages("pandoc")
+install.packages("sampleSelection")
 library(tidyverse)
 library(tidyusoc)
 library(dplyr)
@@ -16,7 +17,8 @@ library(did)         # Callaway & Sant'Anna
 library(modelsummary)
 library(tsibble)
 library(pandoc)
-setwd("C:/Users/tp01040/Downloads/msc-dissertation-roe/Data")
+library(sampleSelection)
+setwd("C:/Users/tp01040/Downloads/msc-dissertation-roe/Data/")
 
 # Compile raw data (run only once)
 usoc_convert(
@@ -25,27 +27,27 @@ usoc_convert(
   filter_files = "indresp",
 )
 
-# Clean data
 rm(list = ls())
+
 custom_mappings <- function(cols) {
-  
   life_sat <- pick_var(c("sclfsato", "lfsato"), cols)
-  
   custom_variables <- tibble::tribble(
     ~usoc_name, ~new_name, ~type,
-    "nchild_dv", "nchild_dv", "numeric"
+    "nchild_dv", "numChild", "numeric",
+    "aidhh", "aidhh", "factor"
   )
-  
   return(custom_variables)
-  
 }
+
 usoc <- usoc_compile(
   directory = "rds",
   extra_mappings = custom_mappings
 )
-source("data_cleaning.R")
+
+# Clean data
+source("Code/data_cleaning.R")
 
 # Run model and export model summary
-source("models.R")
+source("Code/models.R")
 
 
