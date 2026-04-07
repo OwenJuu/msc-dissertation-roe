@@ -1,8 +1,5 @@
-working_df <- usoc_df %>%
-  mutate(selected = as.integer(!is.na(isWorking) & isWorking == 1))
-
 #Creating lag(wage)
-working_df <- working_df %>%
+working_df <- usoc_df %>%
   ungroup() %>%
   arrange(pidp, year) %>%
   group_by(pidp) %>%
@@ -14,9 +11,8 @@ working_df <- working_df %>%
 
 
 # Probit selection model
-working_df <- working_df %>% ungroup()
 probit_sel <- glm(
-  selected ~ NLW + numChild + reg_unemp + isCare + lwage_lag,
+  isWorking ~ NLW + numChild + reg_unemp + isCare + lwage_lag,
   # append Z_i and X_it controls here
   data   = working_df,
   family = binomial(link = "probit")
@@ -27,26 +23,18 @@ summary(probit_sel)
 working_df <- working_df %>%
   mutate(
     xg  = predict(probit_sel, newdata = working_df, type = "link"),
-    imr = dnorm(xg) / pnorm(xg)
+    imr = dnorm(xg) / pnorm(xg),
+    imr = ifelse(is.infinite(imr) | is.nan(imr), NA, imr),
+    imr = pmin(imr, quantile(imr, 0.99, na.rm = TRUE))) %>% filter(!is.na(imr)
   )
-
-#Creating lag(wage)
-working_df <- working_df %>%
-  ungroup() %>%
-  arrange(pidp, year) %>%
-  group_by(pidp) %>%
-  mutate(
-    lwage_lag  = dplyr::lag(lwage, n = 1), # t-1
-    lwage_lag2 = dplyr::lag(lwage, n = 2)  # t-2
-  ) %>%
-  ungroup()
 
 # Filter for the working sample
 # Note: You now require at least 3 years of data for a row to stay in 
 # the sample (Current year, t-1, and t-2)
 working_df <- working_df %>%
   filter(isWorking == 1) %>%
-  filter(!is.na(lwage_lag) & !is.na(lwage_lag2))
+  filter(!is.na(lwage_lag) & !is.na(lwage_lag2)) %>%
+  filter(!is.nan(lwage))
 
 # ── TWFE-2SLS ──────────────────────────────────────────────────────────
 
@@ -63,12 +51,9 @@ working_df <- working_df %>%
 twfe_iv <- feols(
   lwage ~ imr |
     pidp + year |
-    GCSE + ALevel + Undergrad + HigherEd + expyrs ~              # 5 endogenous variables
-    lwage_lag + lwage_lag2 + ROSLA2013 + ROSLA2015 + reg_unemp,  # 5 instruments 
+    ALevel + Undergrad + HigherEd + expyrs ~              # 5 endogenous variables
+    lwage_lag + PG_Loan_Eligible + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp,  # 5 instruments 
   data    = working_df,
   cluster = ~pidp
 )
 
-# First-stage diagnostics + second-stage results
-summary(twfe_iv, stage = 1:2)
-summary(twfe_iv)

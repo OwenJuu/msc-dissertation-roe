@@ -27,6 +27,7 @@ usoc_convert(
   filter_files = "indresp",
 )
 
+# Compile merged data
 rm(list = ls())
 
 custom_mappings <- function(cols) {
@@ -49,5 +50,5 @@ source("Code/data_cleaning.R")
 
 # Run model and export model summary
 source("Code/models.R")
-
+summary(twfe_iv, stage = 1:2)
 
