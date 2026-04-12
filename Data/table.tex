@@ -2,42 +2,52 @@
 \centering
 \begin{talltblr}[         %% tabularray outer open
 entry=none,label=none,
-note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
+note{}={+ p \num{< 0.1}, * p \num{< 0.05}, ** p \num{< 0.01}, *** p \num{< 0.001}},
+note{ }={Clustered standard errors at the individual level.},
 ]                     %% tabularray outer close
 {                     %% tabularray inner open
-colspec={Q[]Q[]Q[]Q[]Q[]},
-hline{2}={1-5}{solid, black, 0.05em},
-hline{24}={1-5}{solid, black, 0.05em},
-hline{1}={1-5}{solid, black, 0.08em},
-hline{27}={1-5}{solid, black, 0.08em},
-column{2-5}={}{halign=c},
+colspec={Q[]Q[]Q[]Q[]Q[]Q[]Q[]},
+hline{2}={1-7}{solid, black, 0.05em},
+hline{26}={1-7}{solid, black, 0.05em},
+hline{1}={1-7}{solid, black, 0.08em},
+hline{36}={1-7}{solid, black, 0.08em},
+column{2-7}={}{halign=c},
 column{1}={}{halign=l},
 }                     %% tabularray inner close
-& FD & TWFE & TWFE + NLW & TWFE + NLW × Ed \\
-(Intercept) & \num{-0.361}*** &  &  &  \\
-& (\num{0.018}) &  &  &  \\
-middleSchool & \num{0.810}*** & \num{0.726}*** & \num{0.635}*** & \num{0.616}*** \\
-& (\num{0.062}) & (\num{0.067}) & (\num{0.084}) & (\num{0.084}) \\
-highSchool & \num{0.772}*** & \num{0.915}*** & \num{0.723}*** & \num{2.303}*** \\
-& (\num{0.038}) & (\num{0.040}) & (\num{0.052}) & (\num{0.241}) \\
-undergrad & \num{1.035}*** & \num{1.806}*** & \num{1.536}*** & \num{1.798}*** \\
-& (\num{0.050}) & (\num{0.052}) & (\num{0.075}) & (\num{0.273}) \\
-higherEd & \num{-0.599}*** & \num{-1.021}*** & \num{-1.051}*** & \num{-0.884}* \\
-& (\num{0.090}) & (\num{0.092}) & (\num{0.128}) & (\num{0.509}) \\
-expyrs & \num{1.303}*** & \num{0.153}*** & \num{0.729}*** & \num{0.904}*** \\
-& (\num{0.019}) & (\num{0.010}) & (\num{0.024}) & (\num{0.029}) \\
-NLW & \num{-0.051} &  & \num{-1.153}*** & \num{-0.519}*** \\
-& (\num{0.033}) &  & (\num{0.049}) & (\num{0.072}) \\
-highSchool × NLW &  &  &  & \num{-0.261}*** \\
-&  &  &  & (\num{0.038}) \\
-undergrad × NLW &  &  &  & \num{-0.046} \\
-&  &  &  & (\num{0.040}) \\
-higherEd × NLW &  &  &  & \num{-0.014} \\
-&  &  &  & (\num{0.073}) \\
-expyrs × NLW &  &  &  & \num{-0.022}*** \\
-&  &  &  & (\num{0.003}) \\
-Num.Obs. & \num{86877} & \num{109145} & \num{101704} & \num{101704} \\
-R2 & \num{0.060} & \num{0.552} & \num{0.706} & \num{0.707} \\
-R2 Adj. & \num{0.060} & \num{0.479} & \num{0.585} & \num{0.587} \\
+& 1st Stage: ALevel & 1st Stage: Undergrad & 1st Stage: HigherEd & 1st Stage: Experience & Second Stage & Model 2 \\
+lwage\_lag & \num{-0.005}* & \num{-0.003} & \num{-0.001} & \num{0.329}*** &  &  \\
+& (\num{0.002}) & (\num{0.003}) & (\num{0.002}) & (\num{0.022}) &  &  \\
+PGLoan2016 & \num{0.008}+ & \num{0.060}*** & \num{0.006} & \num{-0.208}*** &  &  \\
+& (\num{0.004}) & (\num{0.006}) & (\num{0.004}) & (\num{0.030}) &  &  \\
+Fee2012 & \num{-0.023}*** & \num{-0.055}*** & \num{-0.019}** & \num{-0.245}*** &  &  \\
+& (\num{0.006}) & (\num{0.009}) & (\num{0.006}) & (\num{0.039}) &  &  \\
+ROSLA2013 & \num{0.032} & \num{0.003} & \num{-0.008} & \num{-0.393}*** &  &  \\
+& (\num{0.030}) & (\num{0.024}) & (\num{0.019}) & (\num{0.096}) &  &  \\
+ROSLA2015 & \num{0.039} & \num{0.013} & \num{-0.023} & \num{-0.821}*** &  &  \\
+& (\num{0.037}) & (\num{0.038}) & (\num{0.025}) & (\num{0.153}) &  &  \\
+reg\_unemp & \num{-0.000} & \num{-0.003} & \num{-0.000} & \num{-0.066}*** &  &  \\
+& (\num{0.002}) & (\num{0.002}) & (\num{0.001}) & (\num{0.013}) &  &  \\
+imr & \num{-0.050}* & \num{-0.041}+ & \num{-0.008} & \num{2.293}*** & \num{-0.010} & \num{-0.478}+ \\
+& (\num{0.019}) & (\num{0.025}) & (\num{0.015}) & (\num{0.157}) & (\num{0.078}) & (\num{0.288}) \\
+fit\_ALevel &  &  &  &  & \num{-0.582} & \num{8.639}+ \\
+&  &  &  &  & (\num{5.783}) & (\num{5.043}) \\
+fit\_Undergrad &  &  &  &  & \num{3.867}** & \num{-2.884} \\
+&  &  &  &  & (\num{1.359}) & (\num{2.288}) \\
+fit\_HigherEd &  &  &  &  & \num{-2.425} & \num{-33.783}* \\
+&  &  &  &  & (\num{8.809}) & (\num{14.700}) \\
+fit\_expyrs &  &  &  &  & \num{0.334}** &  \\
+&  &  &  &  & (\num{0.118}) &  \\
+expyrs &  &  &  &  &  & \num{0.111}** \\
+&  &  &  &  &  & (\num{0.040}) \\
+Num.Obs. & \num{39196} & \num{39196} & \num{39196} & \num{39196} & \num{39196} & \num{41465} \\
+R2 & \num{0.937} & \num{0.907} & \num{0.872} & \num{0.982} & \num{0.358} & \num{0.094} \\
+R2 Adj. & \num{0.924} & \num{0.888} & \num{0.846} & \num{0.978} & \num{0.225} & \num{0.093} \\
+R2 Within & \num{0.006} & \num{0.029} & \num{0.003} & \num{0.040} & \num{0.003} & \num{0.091} \\
+R2 Within Adj. & \num{0.006} & \num{0.029} & \num{0.003} & \num{0.040} & \num{0.003} & \num{0.091} \\
+AIC & \num{-46661.7} & \num{-25821.7} & \num{-56203.5} & \num{102408.5} & \num{147820.8} & \num{307626.1} \\
+BIC & \num{11048.4} & \num{31888.4} & \num{1506.6} & \num{160118.6} & \num{205513.7} & \num{307876.4} \\
+RMSE & \num{0.11} & \num{0.15} & \num{0.10} & \num{0.75} & \num{1.34} & \num{9.87} \\
+FE: year & X & X & X & X & X & X \\
+FE: pidp & X & X & X & X & X &  \\
 \end{talltblr}
 \end{table}

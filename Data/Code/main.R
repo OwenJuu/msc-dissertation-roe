@@ -35,7 +35,7 @@ custom_mappings <- function(cols) {
   custom_variables <- tibble::tribble(
     ~usoc_name, ~new_name, ~type,
     "nchild_dv", "numChild", "numeric",
-    "aidhh", "aidhh", "factor"
+    "aidhh", "aidhh", "factor",
   )
   return(custom_variables)
 }
@@ -50,5 +50,60 @@ source("Code/data_cleaning.R")
 
 # Run model and export model summary
 source("Code/models.R")
+summary(probit_sel)
 summary(twfe_iv, stage = 1:2)
+summary(model2, stage = 1:2)
 
+
+
+##OUTPUT SUMMARY THINGIES
+etable(
+  twfe_iv,
+  stage = 1,
+  fitstat = ~ ivf1 + wald,
+  tex = TRUE,
+  file = "first_stage_table.tex"
+)
+
+etable(
+  twfe_iv,
+  stage = 2,
+  fitstat = ~ ivf1 + wald,
+  tex = TRUE,
+  file = "second_stage_table.tex"
+)
+
+#FIRST STAGE TABLE
+fs <- summary(twfe_iv, stage = 1)
+
+modelsummary(
+  list(
+    "ALevel" = fs[[1]],
+    "Undergrad" = fs[[2]],
+    "HigherEd" = fs[[3]],
+    "Experience" = fs[[4]]
+  ),
+  stars = TRUE,
+  statistic = "({std.error})",
+  gof_omit = "AIC|BIC|RMSE",
+  notes = "First-stage regressions. Clustered standard errors at the individual level.",
+  output = "first_stage_table.tex"
+)
+
+#SECOND STAGE
+modelsummary(
+  list(
+    "TWFE IV" = twfe_iv
+  ),
+  stars = TRUE,
+  statistic = "({std.error})",
+  gof_omit = "AIC|BIC|RMSE",
+  notes = "Clustered standard errors at the individual level.",
+  output = "second_stage_table.tex"
+)
+
+table(usoc$race)
+
+
+##TEST MODEL
+source("test_model.R")

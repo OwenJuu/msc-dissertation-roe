@@ -75,8 +75,38 @@ usoc_clean <- usoc %>%
     ROSLA2015 = as.integer(year >= 2015) * as.integer(birth_year >= 1998),
     
     # Other policies
-    PG_Loan_Eligible = as.integer(year >= 2016 & age >= 21 & age <= 30),
-    Fee2012 = as.integer(year >= 2012 & age >= 18 & age <= 20)
+    PGLoan2016 = as.integer(year >= 2016 & age >= 21 & age <= 30),
+    Fee2012 = as.integer(year >= 2012 & age >= 18 & age <= 20),
+    
+    #Race
+    race_group = case_when(
+      
+      # White
+      str_detect(race, "white") ~ "White",
+      
+      # Mixed
+      str_detect(race, "mixed") ~ "Mixed",
+      
+      # Asian
+      str_detect(race, "asian") |
+        str_detect(race, "indian") |
+        str_detect(race, "pakistani") |
+        str_detect(race, "bangladeshi") |
+        str_detect(race, "chinese") ~ "Asian",
+      
+      # Black
+      str_detect(race, "black") |
+        str_detect(race, "african") |
+        str_detect(race, "caribbean") ~ "Black",
+      
+      # Other
+      str_detect(race, "arab") |
+        str_detect(race, "other ethnic") ~ "Other",
+      
+      # Missing / non-response
+      race %in% c("missing", "refusal", "proxy", "inapplicable", "don't know") ~ NA_character_,
+      
+      TRUE ~ NA_character_),
   ) %>%
   ungroup() 
 
@@ -87,8 +117,8 @@ usoc_clean <- left_join(usoc_clean, regional_unemp_long, by = c("year", "gor_dv"
 
 # FINAL DATASET
 usoc_df <- usoc_clean %>%
-  select(pidp, year, lwage, hiqual, GCSE, ALevel, Undergrad, HigherEd, expyrs, 
-         NLW, reg_unemp, ROSLA2013, ROSLA2015, isWorking, numChild, isCare, PG_Loan_Eligible, Fee2012)
+  select(pidp, year, age, lwage, hiqual, GCSE, ALevel, Undergrad, HigherEd, expyrs, 
+         NLW, reg_unemp, ROSLA2013, ROSLA2015, isWorking, numChild, isCare, PGLoan2016, Fee2012, race_group)
 
 # Freeing some memory
 rm(macro, regional_unemp, regional_unemp_long, usoc_clean)

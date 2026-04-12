@@ -1,0 +1,38 @@
+
+\begingroup
+\centering
+\begin{tabular}{lcccc}
+   \tabularnewline \midrule \midrule
+   Dependent Variables: & ALevel          & Undergrad       & HigherEd        & expyrs\\  
+   Model:               & (1)             & (2)             & (3)             & (4)\\  
+   \midrule
+   \emph{Variables}\\
+   lwage\_lag           & -0.0057$^{**}$  & -0.0062$^{*}$   & -0.0015         & 0.3491$^{***}$\\   
+                        & (0.0027)        & (0.0035)        & (0.0023)        & (0.0234)\\   
+   PGLoan2016           & 0.0079$^{*}$    & 0.0618$^{***}$  & 0.0064          & -0.1963$^{***}$\\   
+                        & (0.0044)        & (0.0065)        & (0.0044)        & (0.0306)\\   
+   Fee2012              & -0.0219$^{***}$ & -0.0504$^{***}$ & -0.0200$^{***}$ & -0.2597$^{***}$\\   
+                        & (0.0064)        & (0.0091)        & (0.0062)        & (0.0398)\\   
+   ROSLA2013            & 0.0317          & 0.0121          & -0.0065         & -0.4304$^{***}$\\   
+                        & (0.0316)        & (0.0275)        & (0.0205)        & (0.1018)\\   
+   ROSLA2015            & 0.0414          & 0.0345          & -0.0231         & -0.7872$^{***}$\\   
+                        & (0.0401)        & (0.0445)        & (0.0285)        & (0.1605)\\   
+   reg\_unemp           & -0.0005         & -0.0032         & 0.0003          & -0.0675$^{***}$\\   
+                        & (0.0017)        & (0.0023)        & (0.0015)        & (0.0134)\\   
+   imr                  & -0.0521$^{**}$  & -0.0607$^{**}$  & -0.0108         & 2.420$^{***}$\\   
+                        & (0.0205)        & (0.0268)        & (0.0170)        & (0.1666)\\   
+   \midrule
+   \emph{Fixed-effects}\\
+   pidp                 & Yes             & Yes             & Yes             & Yes\\  
+   year                 & Yes             & Yes             & Yes             & Yes\\  
+   \midrule
+   \emph{Fit statistics}\\
+   F-test (1st stage)   & 27.264          & 153.50          & 17.392          & 262.25\\  
+   Wald (joint nullity) & 9.6820          & 38.556          & 4.6823          & 69.496\\  
+   \midrule \midrule
+   \multicolumn{5}{l}{\emph{Clustered (pidp) standard-errors in parentheses}}\\
+   \multicolumn{5}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
+\end{tabular}
+\par\endgroup
+
+

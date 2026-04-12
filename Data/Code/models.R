@@ -4,15 +4,21 @@ working_df <- usoc_df %>%
   arrange(pidp, year) %>%
   group_by(pidp) %>%
   mutate(
+    expyrs2 = expyrs^2,
     lwage_lag  = dplyr::lag(lwage, n = 1), # t-1
     lwage_lag2 = dplyr::lag(lwage, n = 2)  # t-2
   ) %>%
   ungroup()
 
+working_df$race_group <- factor(
+  working_df$race_group,
+  levels = c("White", "Asian", "Black", "Mixed", "Other")
+)
 
 # Probit selection model
 probit_sel <- glm(
-  isWorking ~ NLW + numChild + reg_unemp + isCare + lwage_lag,
+  isWorking ~ lwage_lag + PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp 
+  + NLW + numChild + isCare,
   # append Z_i and X_it controls here
   data   = working_df,
   family = binomial(link = "probit")
@@ -34,7 +40,8 @@ working_df <- working_df %>%
 working_df <- working_df %>%
   filter(isWorking == 1) %>%
   filter(!is.na(lwage_lag) & !is.na(lwage_lag2)) %>%
-  filter(!is.nan(lwage))
+  filter(!is.nan(lwage)) %>%
+  filter(!lwage == 0)
 
 # ── TWFE-2SLS ──────────────────────────────────────────────────────────
 
@@ -50,10 +57,40 @@ working_df <- working_df %>%
 
 twfe_iv <- feols(
   lwage ~ imr |
-    pidp + year |
-    ALevel + Undergrad + HigherEd + expyrs ~              # 5 endogenous variables
-    lwage_lag + PG_Loan_Eligible + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp,  # 5 instruments 
+    pidp + year|
+    ALevel + Undergrad + HigherEd + expyrs + expyrs2 ~              # 4 endogenous variables
+    lwage_lag + PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp,  # 6 instruments 
   data    = working_df,
   cluster = ~pidp
 )
+summary(twfe_iv, stage = 1:2)
 
+#----------INTERACTION TERM
+# NLW interaction terms (qualification × NLW)
+working_df$NLW_GCSE      <- working_df$NLW * working_df$GCSE
+working_df$NLW_ALevel    <- working_df$NLW * working_df$ALevel
+working_df$NLW_Undergrad <- working_df$NLW * working_df$Undergrad
+working_df$NLW_HigherEd  <- working_df$NLW * working_df$HigherEd
+working_df$NLW_expyrs    <- working_df$NLW * working_df$expyrs
+working_df$NLW_expyrs2    <- working_df$NLW * working_df$expyrs2
+
+# Interacted instruments (for instrumented NLW x qual terms)
+working_df$NLW_lwage_lag  <- working_df$NLW * working_df$lwage_lag
+working_df$NLW_PGLoan2016 <- working_df$NLW * working_df$PGLoan2016
+working_df$NLW_Fee2012    <- working_df$NLW * working_df$Fee2012
+working_df$NLW_ROSLA2013  <- working_df$NLW * working_df$ROSLA2013
+working_df$NLW_ROSLA2015  <- working_df$NLW * working_df$ROSLA2015
+working_df$NLW_reg_unemp  <- working_df$NLW * working_df$reg_unemp
+
+interacton <- feols(
+  lwage ~ imr |
+    pidp + year |
+    ALevel + Undergrad + HigherEd + expyrs + expyrs2 +
+    NLW_ALevel + NLW_Undergrad + NLW_HigherEd + NLW_expyrs + NLW_expyrs2 ~
+    lwage_lag + PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp +
+    NLW_lwage_lag + NLW_PGLoan2016 + NLW_Fee2012 +
+    NLW_ROSLA2013 + NLW_ROSLA2015 + NLW_reg_unemp,
+  data    = working_df,
+  cluster = ~pidp
+)
+summary(interacton, stage = 1:2)
