@@ -1,18 +1,7 @@
-# IMPORT EXTERNAL DATA
-macro <- read.csv("External Data/macro.csv")
-regional_unemp <- read.csv("External Data/regional_unemp.csv")
-regional_unemp_long <- regional_unemp %>%
-  pivot_longer(
-    cols = -year,
-    names_to = "gor_dv",
-    values_to = "reg_unemp"
-  )
-
 # CLEAN DATA
 usoc_clean <- usoc %>%
   arrange(pidp, year) %>%
   group_by(pidp) %>%
-  filter(first(age) <= 18) %>% #We must starts from 18 years old or younger, otherwise we can't count expyrs
   mutate(
     pidp = as.integer(pidp),
     year = as.integer(as.character(year)),
@@ -111,7 +100,16 @@ usoc_clean <- usoc %>%
   ungroup() 
 
 
-#Import NLW and regional unemployment variable into the dataset
+# IMPORT EXTERNAL DATA AND MERGE WITH THE ORIGINAL DATASET
+macro <- read.csv("External Data/macro.csv")
+regional_unemp <- read.csv("External Data/regional_unemp.csv")
+regional_unemp_long <- regional_unemp %>%
+  pivot_longer(
+    cols = -year,
+    names_to = "gor_dv",
+    values_to = "reg_unemp"
+  )
+
 usoc_clean <- left_join(usoc_clean, macro, by = "year")
 usoc_clean <- left_join(usoc_clean, regional_unemp_long, by = c("year", "gor_dv"))
 

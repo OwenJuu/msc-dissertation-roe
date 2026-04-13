@@ -35,9 +35,10 @@ working_df <- working_df %>%
   )
 
 # Filter for the working sample
-# Note: You now require at least 3 years of data for a row to stay in 
-# the sample (Current year, t-1, and t-2)
 working_df <- working_df %>%
+  group_by(pidp)%>%
+  filter(first(age) <= 18) %>% #We must starts from 18 years old or younger, otherwise expyrs is invalid
+  ungroup() %>% 
   filter(isWorking == 1) %>%
   filter(!is.na(lwage_lag) & !is.na(lwage_lag2)) %>%
   filter(!is.nan(lwage)) %>%
@@ -49,12 +50,7 @@ working_df <- working_df %>%
 #   lwage_it = α_i + δ_t + β hiqual_it + ρ expyrs_it + θ λ_it + x'_it π + ε_it
 #
 # Endogenous: GCSE + ALevel + Undergrad + HigherEd, expyrs
-# Instruments: lwage_lag (varies at i×t, survives year FE)
-#
-# !! ROSLA2013, ROSLA2015, unemp only vary by t → absorbed by year FE → dropped.
-#    To use them, interact with birth-year cohort: e.g., ROSLA2013 × I(birthyear >= 1997)
-#    Requires a birth year variable. Add those interaction terms to the instrument list below.
-
+# Instruments: lwage_lag, PGLoan2016, Fee2012, ROSLA2013, ROSLA2015, reg_unemp
 twfe_iv <- feols(
   lwage ~ imr |
     pidp + year|
@@ -82,7 +78,7 @@ working_df$NLW_ROSLA2013  <- working_df$NLW * working_df$ROSLA2013
 working_df$NLW_ROSLA2015  <- working_df$NLW * working_df$ROSLA2015
 working_df$NLW_reg_unemp  <- working_df$NLW * working_df$reg_unemp
 
-interacton <- feols(
+twfe_iv2 <- feols(
   lwage ~ imr |
     pidp + year |
     ALevel + Undergrad + HigherEd + expyrs + expyrs2 +
@@ -93,4 +89,4 @@ interacton <- feols(
   data    = working_df,
   cluster = ~pidp
 )
-summary(interacton, stage = 1:2)
+summary(twfe_iv2, stage = 1:2)

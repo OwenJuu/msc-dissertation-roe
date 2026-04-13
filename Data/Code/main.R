@@ -52,7 +52,7 @@ source("Code/data_cleaning.R")
 source("Code/models.R")
 summary(probit_sel)
 summary(twfe_iv, stage = 1:2)
-summary(model2, stage = 1:2)
+summary(interaction, stage = 1:2)
 
 
 
@@ -66,7 +66,7 @@ etable(
 )
 
 etable(
-  twfe_iv,
+  interaction,
   stage = 2,
   fitstat = ~ ivf1 + wald,
   tex = TRUE,
@@ -93,7 +93,8 @@ modelsummary(
 #SECOND STAGE
 modelsummary(
   list(
-    "TWFE IV" = twfe_iv
+    "TWFE IV" = twfe_iv,
+    "TWFE IV w/ interaction" = twfe_iv2
   ),
   stars = TRUE,
   statistic = "({std.error})",
