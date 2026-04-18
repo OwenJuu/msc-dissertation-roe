@@ -40,9 +40,10 @@ usoc_clean <- usoc %>%
       TRUE ~ 0
     ),
     expyrs = cumsum(isWorking),
+    expyrs2 = expyrs^2,
     
     #Calculating log of wage
-    lwage = log(fimnlabgrs_dv + 1), #TODO: change this later,
+    lwage = asinh(fimnlabgrs_dv),
     
     aidhh = str_trim(str_to_lower(aidhh)),
     isCare = case_when(
@@ -115,7 +116,7 @@ usoc_clean <- left_join(usoc_clean, regional_unemp_long, by = c("year", "gor_dv"
 
 # FINAL DATASET
 usoc_df <- usoc_clean %>%
-  select(pidp, year, age, lwage, hiqual, GCSE, ALevel, Undergrad, HigherEd, expyrs, 
+  select(pidp, year, age, lwage, hiqual, GCSE, ALevel, Undergrad, HigherEd, expyrs, expyrs2,
          NLW, reg_unemp, ROSLA2013, ROSLA2015, isWorking, numChild, isCare, PGLoan2016, Fee2012, race_group)
 
 # Freeing some memory

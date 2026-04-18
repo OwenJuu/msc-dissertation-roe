@@ -3,8 +3,9 @@ install.packages("devtools")
 devtools::install_github("wklimowicz/tidyusoc")
 install.packages("tidyverse")
 install.packages("tsibble")
-install.packages("pandoc")
+install.packages("patchwork")
 install.packages("sampleSelection")
+library(patchwork)
 library(tidyverse)
 library(tidyusoc)
 library(dplyr)
@@ -52,9 +53,9 @@ source("Code/data_cleaning.R")
 source("Code/models.R")
 summary(probit_sel)
 summary(twfe_iv, stage = 1:2)
-summary(interaction, stage = 1:2)
+summary(twfe_iv2, stage = 1:2)
 
-
+source("Code/plots.R")
 
 ##OUTPUT SUMMARY THINGIES
 etable(
@@ -105,6 +106,3 @@ modelsummary(
 
 table(usoc$race)
 
-
-##TEST MODEL
-source("test_model.R")

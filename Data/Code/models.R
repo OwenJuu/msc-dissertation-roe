@@ -1,12 +1,13 @@
 #Creating lag(wage)
+working_df <- usoc_df
+
 working_df <- usoc_df %>%
   ungroup() %>%
   arrange(pidp, year) %>%
   group_by(pidp) %>%
   mutate(
-    expyrs2 = expyrs^2,
     lwage_lag  = dplyr::lag(lwage, n = 1), # t-1
-    lwage_lag2 = dplyr::lag(lwage, n = 2)  # t-2
+    emp_lag = dplyr::lag(isWorking, n = 1)
   ) %>%
   ungroup()
 
@@ -40,10 +41,7 @@ working_df <- working_df %>%
   filter(first(age) <= 18) %>% #We must starts from 18 years old or younger, otherwise expyrs is invalid
   ungroup() %>% 
   filter(isWorking == 1) %>%
-  filter(!is.na(lwage_lag) & !is.na(lwage_lag2)) %>%
-  filter(!is.nan(lwage)) %>%
-  filter(!lwage == 0)
-
+  filter(lwage > 0 )
 # ── TWFE-2SLS ──────────────────────────────────────────────────────────
 
 # Structural equation:
@@ -51,15 +49,17 @@ working_df <- working_df %>%
 #
 # Endogenous: GCSE + ALevel + Undergrad + HigherEd, expyrs
 # Instruments: lwage_lag, PGLoan2016, Fee2012, ROSLA2013, ROSLA2015, reg_unemp
+
 twfe_iv <- feols(
   lwage ~ imr |
     pidp + year|
-    ALevel + Undergrad + HigherEd + expyrs + expyrs2 ~              # 4 endogenous variables
+    ALevel + Undergrad + HigherEd + expyrs + expyrs2~              # 4 endogenous variables
     lwage_lag + PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp,  # 6 instruments 
   data    = working_df,
   cluster = ~pidp
 )
 summary(twfe_iv, stage = 1:2)
+
 
 #----------INTERACTION TERM
 # NLW interaction terms (qualification × NLW)
@@ -79,10 +79,10 @@ working_df$NLW_ROSLA2015  <- working_df$NLW * working_df$ROSLA2015
 working_df$NLW_reg_unemp  <- working_df$NLW * working_df$reg_unemp
 
 twfe_iv2 <- feols(
-  lwage ~ imr |
-    pidp + year |
-    ALevel + Undergrad + HigherEd + expyrs + expyrs2 +
-    NLW_ALevel + NLW_Undergrad + NLW_HigherEd + NLW_expyrs + NLW_expyrs2 ~
+  lwage ~ imr + expyrs + expyrs^2 + NLW_expyrs + NLW_expyrs2|
+    year |
+    ALevel + Undergrad + HigherEd + 
+    NLW_ALevel + NLW_Undergrad + NLW_HigherEd ~
     lwage_lag + PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp +
     NLW_lwage_lag + NLW_PGLoan2016 + NLW_Fee2012 +
     NLW_ROSLA2013 + NLW_ROSLA2015 + NLW_reg_unemp,
