@@ -11,11 +11,6 @@ working_df <- usoc_df %>%
   ) %>%
   ungroup()
 
-working_df$race_group <- factor(
-  working_df$race_group,
-  levels = c("White", "Asian", "Black", "Mixed", "Other")
-)
-
 # Probit selection model
 probit_sel <- glm(
   isWorking ~ lwage_lag + PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp 
