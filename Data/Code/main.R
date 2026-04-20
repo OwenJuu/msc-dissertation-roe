@@ -37,6 +37,7 @@ custom_mappings <- function(cols) {
     ~usoc_name, ~new_name, ~type,
     "nchild_dv", "numChild", "numeric",
     "aidhh", "aidhh", "factor",
+    "sex", "sex", "factor"
   )
   return(custom_variables)
 }

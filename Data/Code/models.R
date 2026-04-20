@@ -37,11 +37,14 @@ working_df <- working_df %>%
 
 # Filter for the working sample
 working_df <- working_df %>%
-  group_by(pidp)%>%
-  filter(first(age) <= 18) %>% #We must starts from 18 years old or younger, otherwise expyrs is invalid
-  ungroup() %>% 
-  filter(isWorking == 1) %>%
-  filter(lwage > 0 )
+  group_by(pidp) %>%
+  filter(
+    first(age) < 18 |
+      (first(age) >= 18 & first(age) <= 21 & first(FTStudying) == 1) # Keeping expyrs valid
+  ) %>%
+  ungroup() %>%
+  filter(isWorking == 1, lwage > 0)
+
 # ── TWFE-2SLS ──────────────────────────────────────────────────────────
 
 # Structural equation:
@@ -59,6 +62,17 @@ twfe_iv <- feols(
   cluster = ~pidp
 )
 summary(twfe_iv, stage = 1:2)
+
+
+twfe_iv_reduced <- feols(
+  lwage ~ imr |
+    pidp + year|
+    ALevel + Undergrad + expyrs + expyrs2~              # 4 endogenous variables
+    lwage_lag + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp,  # 6 instruments 
+  data    = working_df,
+  cluster = ~pidp
+)
+summary(twfe_iv_reduced, stage = 1:2)
 
 
 #----------INTERACTION TERM

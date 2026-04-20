@@ -39,6 +39,10 @@ usoc_clean <- usoc %>%
                     "on adoption leave") ~ 1,
       TRUE ~ 0
     ),
+    FTStudying = case_when(
+      jbstat %in% c("ft studt, school", "full-time student") ~ 1,
+      TRUE ~ 0
+    ),
     expyrs = cumsum(isWorking),
     expyrs2 = expyrs^2,
     
@@ -97,6 +101,25 @@ usoc_clean <- usoc %>%
       race %in% c("missing", "refusal", "proxy", "inapplicable", "don't know") ~ NA_character_,
       
       TRUE ~ NA_character_),
+    
+    race_group <- factor(
+      race_group,
+      levels = c("White", "Asian", "Black", "Mixed", "Other")
+    ),
+    
+    # Sex
+    sex = str_to_lower(sex),
+    sex = str_trim(sex),
+    sex = case_when(
+      sex == "male" ~ "male",
+      sex == "female" ~ "female",
+      TRUE ~ "other"
+    ),
+    sex <- factor(
+      sex,
+      levels = c("male", "female", "other")
+    )
+    
   ) %>%
   ungroup() 
 
@@ -116,8 +139,9 @@ usoc_clean <- left_join(usoc_clean, regional_unemp_long, by = c("year", "gor_dv"
 
 # FINAL DATASET
 usoc_df <- usoc_clean %>%
-  select(pidp, year, age, lwage, hiqual, GCSE, ALevel, Undergrad, HigherEd, expyrs, expyrs2,
-         NLW, reg_unemp, ROSLA2013, ROSLA2015, isWorking, numChild, isCare, PGLoan2016, Fee2012, race_group)
+  select(pidp, year, age, lwage, hiqual, GCSE, ALevel, Undergrad, HigherEd, expyrs, 
+         expyrs2, NLW, reg_unemp, ROSLA2013, ROSLA2015, isWorking, numChild, isCare, 
+         PGLoan2016, Fee2012, race_group, sex, FTStudying)
 
 # Freeing some memory
 rm(macro, regional_unemp, regional_unemp_long, usoc_clean)
