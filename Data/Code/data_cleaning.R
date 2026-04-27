@@ -102,7 +102,7 @@ usoc_clean <- usoc %>%
       
       TRUE ~ NA_character_),
     
-    race_group <- factor(
+    race_group = factor(
       race_group,
       levels = c("White", "Asian", "Black", "Mixed", "Other")
     ),
@@ -115,7 +115,7 @@ usoc_clean <- usoc %>%
       sex == "female" ~ "female",
       TRUE ~ "other"
     ),
-    sex <- factor(
+    sex = factor(
       sex,
       levels = c("male", "female", "other")
     )

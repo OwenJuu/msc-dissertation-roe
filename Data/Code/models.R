@@ -1,13 +1,11 @@
 #Creating lag(wage)
-working_df <- usoc_df
-
 working_df <- usoc_df %>%
   ungroup() %>%
   arrange(pidp, year) %>%
   group_by(pidp) %>%
   mutate(
     lwage_lag  = dplyr::lag(lwage, n = 1), # t-1
-    emp_lag = dplyr::lag(isWorking, n = 1)
+    emp_lag = dplyr::lag(isWorking, n = 1),
   ) %>%
   ungroup()
 
@@ -27,7 +25,7 @@ working_df <- working_df %>%
     xg  = predict(probit_sel, newdata = working_df, type = "link"),
     imr = dnorm(xg) / pnorm(xg),
     imr = ifelse(is.infinite(imr) | is.nan(imr), NA, imr),
-    imr = pmin(imr, quantile(imr, 0.99, na.rm = TRUE))) %>% filter(!is.na(imr)
+    imr = pmin(imr, quantile(imr, 0.99, na.rm = TRUE))
   )
 
 # Filter for the working sample
@@ -38,7 +36,7 @@ working_df <- working_df %>%
       (first(age) >= 18 & first(age) <= 21 & first(FTStudying) == 1) # Keeping expyrs valid
   ) %>%
   ungroup() %>%
-  filter(isWorking == 1, lwage > 0)
+  filter(isWorking == 1, lwage > 0, !is.na(imr))
 
 # ── TWFE-2SLS ──────────────────────────────────────────────────────────
 
@@ -48,26 +46,17 @@ working_df <- working_df %>%
 # Endogenous: GCSE + ALevel + Undergrad + HigherEd, expyrs
 # Instruments: lwage_lag, PGLoan2016, Fee2012, ROSLA2013, ROSLA2015, reg_unemp
 
+# Just add group-specific linear time trends
 twfe_iv <- feols(
-  lwage ~ imr |
-    pidp + year|
-    ALevel + Undergrad + HigherEd + expyrs + expyrs2~              # 4 endogenous variables
-    lwage_lag + PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp,  # 6 instruments 
+  lwage ~ imr + expyrs + expyrs2 |
+    pidp + year + sex[year] + race_group[year] |
+    ALevel + Undergrad ~
+    lwage_lag + PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp,
   data    = working_df,
   cluster = ~pidp
 )
+
 summary(twfe_iv, stage = 1:2)
-
-
-twfe_iv_reduced <- feols(
-  lwage ~ imr |
-    pidp + year|
-    ALevel + Undergrad + expyrs + expyrs2~              # 4 endogenous variables
-    lwage_lag + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp,  # 6 instruments 
-  data    = working_df,
-  cluster = ~pidp
-)
-summary(twfe_iv_reduced, stage = 1:2)
 
 
 #----------INTERACTION TERM

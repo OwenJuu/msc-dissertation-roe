@@ -1,10 +1,8 @@
 # Preample
-install.packages("devtools")
+install.packages("devtools", type = "win.binary")
 devtools::install_github("wklimowicz/tidyusoc")
-install.packages("tidyverse")
-install.packages("tsibble")
-install.packages("patchwork")
-install.packages("sampleSelection")
+
+#Install the following packages if missing:
 library(patchwork)
 library(tidyverse)
 library(tidyusoc)
@@ -19,7 +17,7 @@ library(modelsummary)
 library(tsibble)
 library(pandoc)
 library(sampleSelection)
-setwd("C:/Users/tp01040/Downloads/msc-dissertation-roe/Data/")
+setwd("C:/Users/thuan/Downloads/msc-dissertation-roe/Data")
 
 # Compile raw data (run only once)
 usoc_convert(
