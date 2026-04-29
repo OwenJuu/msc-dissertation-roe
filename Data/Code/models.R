@@ -38,19 +38,12 @@ working_df <- working_df %>%
   ungroup() %>%
   filter(isWorking == 1, lwage > 0, !is.na(imr))
 
-# ── TWFE-2SLS ──────────────────────────────────────────────────────────
+# TWFE-2SLS
 
-# Structural equation:
-#   lwage_it = α_i + δ_t + β hiqual_it + ρ expyrs_it + θ λ_it + x'_it π + ε_it
-#
-# Endogenous: GCSE + ALevel + Undergrad + HigherEd, expyrs
-# Instruments: lwage_lag, PGLoan2016, Fee2012, ROSLA2013, ROSLA2015, reg_unemp
-
-# Just add group-specific linear time trends
 twfe_iv <- feols(
-  lwage ~ imr + expyrs + expyrs2 |
-    pidp + year + sex[year] + race_group[year] |
-    ALevel + Undergrad ~
+  lwage ~ imr |
+    pidp + year  |
+    GCSE + ALevel + Undergrad + expyrs + expyrs2  ~
     lwage_lag + PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp,
   data    = working_df,
   cluster = ~pidp
@@ -58,33 +51,26 @@ twfe_iv <- feols(
 
 summary(twfe_iv, stage = 1:2)
 
-
-#----------INTERACTION TERM
-# NLW interaction terms (qualification × NLW)
-working_df$NLW_GCSE      <- working_df$NLW * working_df$GCSE
-working_df$NLW_ALevel    <- working_df$NLW * working_df$ALevel
-working_df$NLW_Undergrad <- working_df$NLW * working_df$Undergrad
-working_df$NLW_HigherEd  <- working_df$NLW * working_df$HigherEd
-working_df$NLW_expyrs    <- working_df$NLW * working_df$expyrs
-working_df$NLW_expyrs2    <- working_df$NLW * working_df$expyrs2
-
-# Interacted instruments (for instrumented NLW x qual terms)
-working_df$NLW_lwage_lag  <- working_df$NLW * working_df$lwage_lag
-working_df$NLW_PGLoan2016 <- working_df$NLW * working_df$PGLoan2016
-working_df$NLW_Fee2012    <- working_df$NLW * working_df$Fee2012
-working_df$NLW_ROSLA2013  <- working_df$NLW * working_df$ROSLA2013
-working_df$NLW_ROSLA2015  <- working_df$NLW * working_df$ROSLA2015
-working_df$NLW_reg_unemp  <- working_df$NLW * working_df$reg_unemp
-
-twfe_iv2 <- feols(
-  lwage ~ imr + expyrs + expyrs^2 + NLW_expyrs + NLW_expyrs2|
-    year |
-    ALevel + Undergrad + HigherEd + 
-    NLW_ALevel + NLW_Undergrad + NLW_HigherEd ~
-    lwage_lag + PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp +
-    NLW_lwage_lag + NLW_PGLoan2016 + NLW_Fee2012 +
-    NLW_ROSLA2013 + NLW_ROSLA2015 + NLW_reg_unemp,
-  data    = working_df,
+## Pooled IV
+pooled_iv <- feols(
+  lwage ~ imr + sex + race_group + NLW | year |
+    ALevel + Undergrad + HigherEd + expyrs +  expyrs2~
+    PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp,
+  
+  data = working_df,
   cluster = ~pidp
 )
-summary(twfe_iv2, stage = 1:2)
+
+summary(pooled_iv, stage = 1:2)
+
+## Pooled IV
+ols <- feols(
+  lwage ~ imr + sex + race_group + NLW + ALevel + Undergrad + 
+    HigherEd + expyrs +  expyrs2 | year,
+  
+  data = working_df,
+  cluster = ~pidp
+)
+
+summary(ols, stage = 1:2)
+
