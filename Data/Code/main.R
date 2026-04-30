@@ -35,7 +35,8 @@ custom_mappings <- function(cols) {
     ~usoc_name, ~new_name, ~type,
     "nchild_dv", "numChild", "numeric",
     "aidhh", "aidhh", "factor",
-    "sex", "sex", "factor"
+    "sex", "sex", "factor",
+    "qfhigh_dv", "qfhigh_dv", "factor"
   )
   return(custom_variables)
 }
@@ -50,10 +51,5 @@ source("Code/data_cleaning.R")
 
 # Run model and export model summary
 source("Code/models.R")
-summary(probit_sel)
-summary(twfe_iv, stage = 1:2)
-summary(twfe_iv2, stage = 1:2)
-
-source("Code/plots.R")
 
 

@@ -13,7 +13,6 @@ working_df <- usoc_df %>%
 probit_sel <- glm(
   isWorking ~ lwage_lag + PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp 
   + NLW + numChild + isCare,
-  # append Z_i and X_it controls here
   data   = working_df,
   family = binomial(link = "probit")
 )
@@ -29,6 +28,8 @@ working_df <- working_df %>%
   )
 
 # Filter for the working sample
+changed_ids <- c(435465893, 479849485, 681428019, 750560899, 884767055, 
+                 1292999611, 1497005059, 1565066939, 1581469370)
 working_df <- working_df %>%
   group_by(pidp) %>%
   filter(
@@ -40,37 +41,25 @@ working_df <- working_df %>%
 
 # TWFE-2SLS
 
-twfe_iv <- feols(
-  lwage ~ imr |
-    pidp + year  |
-    GCSE + ALevel + Undergrad + expyrs + expyrs2  ~
-    lwage_lag + PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp,
-  data    = working_df,
+## Simple OLS
+ols <- feols(
+  lwage ~ ALevel + Undergrad + HigherDeg + expyrs +  expyrs2 + 
+    imr + sex + race_group + gor_dv + NLW ,
+  
+  data = working_df,
   cluster = ~pidp
 )
 
-summary(twfe_iv, stage = 1:2)
+summary(ols, stage = 2)
 
 ## Pooled IV
 pooled_iv <- feols(
-  lwage ~ imr + sex + race_group + NLW | year |
-    ALevel + Undergrad + HigherEd + expyrs +  expyrs2~
-    PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp,
+  lwage ~ imr + sex + race_group + gor_dv | year |
+    ALevel + Undergrad + HigherDeg + expyrs + expyrs2~
+    PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp + emp_lag,
   
   data = working_df,
   cluster = ~pidp
 )
 
-summary(pooled_iv, stage = 1:2)
-
-## Pooled IV
-ols <- feols(
-  lwage ~ imr + sex + race_group + NLW + ALevel + Undergrad + 
-    HigherEd + expyrs +  expyrs2 | year,
-  
-  data = working_df,
-  cluster = ~pidp
-)
-
-summary(ols, stage = 1:2)
-
+summary(pooled_iv, stage = 2)
