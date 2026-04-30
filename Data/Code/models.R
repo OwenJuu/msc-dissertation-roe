@@ -28,8 +28,6 @@ working_df <- working_df %>%
   )
 
 # Filter for the working sample
-changed_ids <- c(435465893, 479849485, 681428019, 750560899, 884767055, 
-                 1292999611, 1497005059, 1565066939, 1581469370)
 working_df <- working_df %>%
   group_by(pidp) %>%
   filter(
@@ -39,12 +37,11 @@ working_df <- working_df %>%
   ungroup() %>%
   filter(isWorking == 1, lwage > 0, !is.na(imr))
 
-# TWFE-2SLS
 
 ## Simple OLS
 ols <- feols(
-  lwage ~ ALevel + Undergrad + HigherDeg + expyrs +  expyrs2 + 
-    imr + sex + race_group + gor_dv + NLW ,
+  lwage ~ ALevel + Undergrad + HigherDeg + expyrs + expyrs2 + 
+    imr + sex + race + gor_dv + NLW ,
   
   data = working_df,
   cluster = ~pidp
@@ -52,9 +49,9 @@ ols <- feols(
 
 summary(ols, stage = 2)
 
-## Pooled IV
+## Year FE IV
 pooled_iv <- feols(
-  lwage ~ imr + sex + race_group + gor_dv | year |
+  lwage ~ imr + sex + race + gor_dv | year |
     ALevel + Undergrad + HigherDeg + expyrs + expyrs2~
     PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp + emp_lag,
   
@@ -63,3 +60,21 @@ pooled_iv <- feols(
 )
 
 summary(pooled_iv, stage = 2)
+
+
+## Year FE IV
+pooled_NLW_iv <- feols(
+  lwage ~ imr + sex + race + gor_dv + NLW |
+    
+    ALevel + Undergrad + HigherDeg + expyrs + expyrs2 +
+    NLW:ALevel + NLW:Undergrad +  NLW:HigherDeg + NLW:expyrs + NLW:expyrs2
+  ~
+    PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp + emp_lag +
+    NLW:PGLoan2016 + NLW:Fee2012 + NLW:ROSLA2013 + NLW:ROSLA2015 +
+    NLW:reg_unemp + NLW:emp_lag,
+  
+  data = working_df,
+  cluster = ~pidp
+)
+
+summary(pooled_NLW_iv, stage = 2)

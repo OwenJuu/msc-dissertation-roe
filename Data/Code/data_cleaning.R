@@ -1,14 +1,19 @@
 # CLEAN DATA
+invalid_race <- c(
+  NA,
+  "missing",
+  "proxy",
+  "refusal",
+  "inapplicable"
+)
+
 usoc_clean <- usoc %>%
   arrange(pidp, year) %>%
   group_by(pidp) %>%
   mutate(
     pidp = as.integer(pidp),
     year = as.integer(as.character(year)),
-    
-    # Fill in race from first non-missing, non-inapplicable value per person
-    race = first(race[!race %in% c(NA, "inapplicable")]),
-    
+
     # ── Highest qualification ─────────────────────────────────────────────
     hiqual_dv  = str_trim(str_to_lower(hiqual_dv)),
     qfhigh_dv  = str_trim(str_to_lower(qfhigh_dv)),
@@ -77,7 +82,17 @@ usoc_clean <- usoc %>%
     Fee2012     = as.integer(year >= 2012 & age >= 18 & age <= 20),
     
     # ── Race group (kept as character here; factor applied after ungroup) ─
-    race_group = case_when(
+    # Race is often recorded once and left missing in other waves.
+    # For each individual (grouped by pidp), if a non-missing race value exists,
+    # that value is propagated to all observations for the same pidp.
+    race = str_trim(str_to_lower(race)),
+    race = first(
+      race[
+        !is.na(race) & !race %in% invalid_race
+      ],
+      default = NA_character_
+    ),
+    race = case_when(
       str_detect(race, "white")                                          ~ "White",
       str_detect(race, "mixed")                                          ~ "Mixed",
       str_detect(race, "asian|indian|pakistani|bangladeshi|chinese")     ~ "Asian",
@@ -104,8 +119,8 @@ usoc_clean <- usoc %>%
       hiqual,
       levels = c("Noqual", "GCSE", "ALevel", "Undergrad", "HigherDeg", "OtherHigher")
     ),
-    race_group = factor(
-      race_group,
+    race = factor(
+      race,
       levels = c("White", "Asian", "Black", "Mixed", "Other")
     ),
     sex = factor(
@@ -132,7 +147,7 @@ usoc_clean <- left_join(usoc_clean, regional_unemp_long, by = c("year", "gor_dv"
 usoc_df <- usoc_clean %>%
   select(pidp, year, age, lwage, hiqual, GCSE, ALevel, Undergrad, HigherDeg, OtherHigher,
          expyrs, expyrs2, NLW, reg_unemp, ROSLA2013, ROSLA2015, isWorking, numChild,
-         isCare, PGLoan2016, Fee2012, race_group, sex, gor_dv, FTStudying) %>%
+         isCare, PGLoan2016, Fee2012, race, sex, gor_dv, FTStudying) %>%
   #Have to put the mutate here because left_join forces gor_dv to be character
   mutate(
     gor_dv = factor(
