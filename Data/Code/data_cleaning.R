@@ -22,17 +22,18 @@ usoc_clean <- usoc %>%
       hiqual_dv == "gcse etc"                                  ~ "GCSE",
       hiqual_dv %in% c("a level etc", "a-level etc")           ~ "ALevel",
       hiqual_dv == "degree" & qfhigh_dv == "higher degree"     ~ "HigherDeg",
-      hiqual_dv == "degree"                                    ~ "Undergrad",
-      hiqual_dv %in% c("other higher", "other higher degree")  ~ "OtherHigher",
+      hiqual_dv == "degree"                                    ~ "Bachelor",
+      hiqual_dv %in% c("other higher", "other higher degree")  ~ "OtherDip",
       TRUE                                                     ~ NA_character_
     ),
     
     # ── Binary education dummies ──────────────────────────────────────────
-    GCSE       = ifelse(!is.na(hiqual) & !hiqual %in% c("Noqual"), 1L, 0L),
-    ALevel     = ifelse(!is.na(hiqual) & !hiqual %in% c("Noqual", "GCSE"), 1L, 0L),
-    Undergrad  = ifelse(!is.na(hiqual) & !hiqual %in% c("Noqual", "GCSE", "ALevel"), 1L, 0L),
-    HigherDeg  = ifelse(!is.na(hiqual) & hiqual == "HigherDeg", 1L, 0L),
-    OtherHigher = ifelse(!is.na(hiqual) & hiqual == "OtherHigher", 1L, 0L),
+    # No qual < GCSE < ALevel < Bachelor/OtherDip < HigherDeg
+    GCSE        = ifelse(!is.na(hiqual) & !hiqual %in% c("Noqual"), 1L, 0L),
+    ALevel      = ifelse(!is.na(hiqual) & !hiqual %in% c("Noqual", "GCSE"), 1L, 0L),
+    Bachelor    = ifelse(!is.na(hiqual) &  hiqual %in% c("Bachelor", "HigherDeg"), 1L, 0L),
+    HigherDeg   = ifelse(!is.na(hiqual) &  hiqual == "HigherDeg", 1L, 0L),
+    OtherDip = ifelse(!is.na(hiqual) &  hiqual == "OtherDip", 1L, 0L),
     
     # ── Employment / experience ───────────────────────────────────────────
     jbstat = str_trim(str_to_lower(jbstat)),
@@ -75,9 +76,8 @@ usoc_clean <- usoc %>%
     ),
     
     # ── Policy instruments ────────────────────────────────────────────────
-    birth_year  = year - age,
-    ROSLA2013   = as.integer(year >= 2013) * as.integer(birth_year == 1997),
-    ROSLA2015   = as.integer(year >= 2015) * as.integer(birth_year >= 1998),
+    ROSLA2013   = as.integer(birth_year >= 1996 & birth_year < 1998),
+    ROSLA2015   = as.integer(birth_year >= 1998),
     PGLoan2016  = as.integer(year >= 2016 & age >= 21 & age <= 30),
     Fee2012     = as.integer(year >= 2012 & age >= 18 & age <= 20),
     
@@ -117,7 +117,7 @@ usoc_clean <- usoc %>%
   mutate(
     hiqual = factor(
       hiqual,
-      levels = c("Noqual", "GCSE", "ALevel", "Undergrad", "HigherDeg", "OtherHigher")
+      levels = c("Noqual", "GCSE", "ALevel", "Bachelor", "OtherDip", "HigherDeg")
     ),
     race = factor(
       race,
@@ -145,7 +145,7 @@ usoc_clean <- left_join(usoc_clean, regional_unemp_long, by = c("year", "gor_dv"
 
 # FINAL DATASET
 usoc_df <- usoc_clean %>%
-  select(pidp, year, age, lwage, hiqual, GCSE, ALevel, Undergrad, HigherDeg, OtherHigher,
+  select(pidp, year, age, birth_year, lwage, hiqual, GCSE, ALevel, Bachelor, HigherDeg, OtherDip,
          expyrs, expyrs2, NLW, reg_unemp, ROSLA2013, ROSLA2015, isWorking, numChild,
          isCare, PGLoan2016, Fee2012, race, sex, gor_dv, FTStudying) %>%
   #Have to put the mutate here because left_join forces gor_dv to be character
@@ -159,7 +159,9 @@ usoc_df <- usoc_clean %>%
         "yorkshire.and.the.humber"
       )
     )
-  )
+  ) %>%
+  #England only because education poicly instruments is different for these three
+  filter(!gor_dv %in% c("scotland", "northern.ireland", "wales"))  
 
 # Freeing some memory
 rm(macro, regional_unemp, regional_unemp_long, usoc_clean)

@@ -36,7 +36,8 @@ custom_mappings <- function(cols) {
     "nchild_dv", "numChild", "numeric",
     "aidhh", "aidhh", "factor",
     "sex", "sex", "factor",
-    "qfhigh_dv", "qfhigh_dv", "factor"
+    "qfhigh_dv", "qfhigh_dv", "factor",
+    "birthy", "birth_year", "numeric"
   )
   return(custom_variables)
 }
@@ -51,5 +52,5 @@ source("Code/data_cleaning.R")
 
 # Run model and export model summary
 source("Code/models.R")
-
+source("Code/plots.R")
 

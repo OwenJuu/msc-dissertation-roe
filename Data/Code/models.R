@@ -11,8 +11,7 @@ working_df <- usoc_df %>%
 
 # Probit selection model
 probit_sel <- glm(
-  isWorking ~ lwage_lag + PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp 
-  + NLW + numChild + isCare,
+  isWorking ~ lwage_lag + reg_unemp + NLW + numChild + isCare,
   data   = working_df,
   family = binomial(link = "probit")
 )
@@ -27,54 +26,60 @@ working_df <- working_df %>%
     imr = pmin(imr, quantile(imr, 0.99, na.rm = TRUE))
   )
 
-# Filter for the working sample
 working_df <- working_df %>%
   group_by(pidp) %>%
   filter(
     first(age) < 18 |
-      (first(age) >= 18 & first(age) <= 21 & first(FTStudying) == 1) # Keeping expyrs valid
+      (first(age) >= 18 & first(age) <= 21 & first(FTStudying) == 1)
   ) %>%
   ungroup() %>%
   filter(isWorking == 1, lwage > 0, !is.na(imr))
 
 
-## Simple OLS
-ols <- feols(
-  lwage ~ ALevel + Undergrad + HigherDeg + expyrs + expyrs2 + 
-    imr + sex + race + gor_dv + NLW ,
-  
-  data = working_df,
-  cluster = ~pidp
-)
 
-summary(ols, stage = 2)
-
-## Year FE IV
-pooled_iv <- feols(
-  lwage ~ imr + sex + race + gor_dv | year |
-    ALevel + Undergrad + HigherDeg + expyrs + expyrs2~
-    PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp + emp_lag,
-  
-  data = working_df,
-  cluster = ~pidp
-)
-
-summary(pooled_iv, stage = 2)
-
-
-## Year FE IV
-pooled_NLW_iv <- feols(
-  lwage ~ imr + sex + race + gor_dv + NLW |
-    
-    ALevel + Undergrad + HigherDeg + expyrs + expyrs2 +
-    NLW:ALevel + NLW:Undergrad +  NLW:HigherDeg + NLW:expyrs + NLW:expyrs2
-  ~
-    PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp + emp_lag +
-    NLW:PGLoan2016 + NLW:Fee2012 + NLW:ROSLA2013 + NLW:ROSLA2015 +
-    NLW:reg_unemp + NLW:emp_lag,
-  
-  data = working_df,
-  cluster = ~pidp
-)
-
-summary(pooled_NLW_iv, stage = 2)
+# sanity <- glm(
+#   ALevel ~ ROSLA2013 + ROSLA2015 ,
+#   data   = working_df,
+#   family = binomial(link = "probit")
+# )
+# summary(sanity)
+# 
+# 
+# ## Simple OLS
+# ols <- feols(
+#   lwage ~ ALevel + Bachelor + HigherDeg + expyrs + expyrs2 + 
+#     imr + sex + race + gor_dv + NLW ,
+#   
+#   data = working_df,
+#   cluster = ~pidp
+# )
+# 
+# summary(ols)
+# 
+# ## Year FE IV
+# pooled_iv <- feols(
+#   lwage ~ imr + sex + race + gor_dv | year |
+#     ALevel + Bachelor + HigherDeg + expyrs + expyrs2~
+#     PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp + emp_lag,
+#   
+#   data = working_df,
+#   cluster = ~pidp
+# )
+# 
+# summary(pooled_iv, stage = 1:2)
+# 
+# 
+# ## Year FE IV
+# #Serious identification issue. If someone is working on NLW
+# pooled_NLW_iv <- feols(
+#     lwage ~ imr + sex + race + gor_dv + NLW +
+#     NLW:ALevel + NLW:Bachelor + NLW:HigherDeg +     # OLS — NLW interactions
+#     NLW:expyrs + NLW:expyrs2 |                       # OLS — NLW interactions
+#     ALevel + Bachelor + HigherDeg + expyrs + expyrs2  # IV — qualifications only
+#   ~
+#     PGLoan2016 + Fee2012 + ROSLA2013 + ROSLA2015 + reg_unemp + emp_lag,
+#   data    = working_df,
+#   cluster = ~pidp
+# )
+# 
+# summary(pooled_NLW_iv, stage = 2)
