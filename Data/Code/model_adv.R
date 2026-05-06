@@ -45,8 +45,15 @@ working_df <- working_df %>% mutate(
   NLW_v_expyrs2 = NLW*v_expyrs2
 )
 
+model2 <- feols(
+  lwage ~ ALevel + Bachelor + HigherDeg + expyrs + expyrs2  
+  + imr + sex + race + gor_dv + NLW                        
+  + v_ALevel + v_Bachelor + v_HigherDeg + v_expyrs + v_expyrs2,                             
+  data    = working_df,
+  cluster = ~pidp
+)
 
-cfa_model <- feols(
+model3 <- feols(
   lwage ~ ALevel + Bachelor + HigherDeg + expyrs + expyrs2  
   + NLW:ALevel + NLW:Bachelor + NLW:HigherDeg + NLW:expyrs + NLW:expyrs2
   + imr + sex + race + gor_dv + NLW                        
@@ -56,4 +63,5 @@ cfa_model <- feols(
   cluster = ~pidp
 )
 
-summary(cfa_model)
+summary(model2)
+summary(model3)
