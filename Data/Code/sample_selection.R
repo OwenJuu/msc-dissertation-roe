@@ -38,16 +38,16 @@ working_df <- working_df %>%
 
 
 sanity <- glm(
-  ALevel ~ ROSLA2013 + ROSLA2015 ,
+  hiqual ~ ROSLA2013 + ROSLA2015 ,
   data   = working_df,
   family = binomial(link = "probit")
 )
 summary(sanity)
 
 model1 <- feols(
-  lwage ~ ALevel + Bachelor + HigherDeg + expyrs + expyrs2 +
+  lwage ~ hiqual + expyrs + expyrs2 +
     imr + sex + race + gor_dv + NLW ,
-
+  
   data = working_df,
   cluster = ~pidp
 )

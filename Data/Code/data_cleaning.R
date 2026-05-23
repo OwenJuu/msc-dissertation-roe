@@ -54,10 +54,7 @@ usoc_clean <- usoc %>%
     ),
     expyrs  = cumsum(isWorking),
     expyrs2 = expyrs^2,
-    
-    # ── Log wage ──────────────────────────────────────────────────────────
-    lwage = asinh(fimnlabgrs_dv),
-    
+  
     # ── Caring ────────────────────────────────────────────────────────────
     aidhh = str_trim(str_to_lower(aidhh)),
     isCare = case_when(
@@ -115,10 +112,10 @@ usoc_clean <- usoc %>%
   
   # ── Apply all factors AFTER ungroup() to prevent attribute loss ─────────
   mutate(
-    hiqual = factor(
-      hiqual,
-      levels = c("Noqual", "GCSE", "ALevel", "Bachelor", "OtherDip", "HigherDeg")
-    ),
+    hiqual = factor(hiqual,
+                    levels = c("Noqual", "GCSE", "ALevel", "OtherDip", 
+                               "Bachelor", "HigherDeg"),
+                    ordered = FALSE),
     race = factor(
       race,
       levels = c("White", "Asian", "Black", "Mixed", "Other")
@@ -145,6 +142,10 @@ usoc_clean <- left_join(usoc_clean, regional_unemp_long, by = c("year", "gor_dv"
 
 # FINAL DATASET
 usoc_df <- usoc_clean %>%
+  mutate(
+    NLW = NLW/CPI*100,
+    lwage = asinh(fimnlabgrs_dv/CPI*100)
+  ) %>%
   select(pidp, year, age, birth_year, lwage, hiqual, GCSE, ALevel, Bachelor, HigherDeg, OtherDip,
          expyrs, expyrs2, NLW, reg_unemp, ROSLA2013, ROSLA2015, isWorking, numChild,
          isCare, PGLoan2016, Fee2012, race, sex, gor_dv, FTStudying) %>%

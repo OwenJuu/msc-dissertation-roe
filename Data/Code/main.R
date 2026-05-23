@@ -12,11 +12,9 @@ library(plm)
 library(stargazer)
 library(ivreg)       # FD-IV with diagnostics
 library(fixest)      # TWFE / Sun & Abraham
-library(did)         # Callaway & Sant'Anna
 library(modelsummary)
 library(tsibble)
-library(pandoc)
-library(sampleSelection)
+library(splines)
 setwd("C:/Users/thuan/Downloads/msc-dissertation-roe/Data")
 
 # Compile raw data (run only once)
@@ -47,10 +45,13 @@ usoc <- usoc_compile(
   extra_mappings = custom_mappings
 )
 
-# Clean data
+# Clean data (run only when adding new variables to save compile time)
 source("Code/data_cleaning.R")
 
-# Run model and export model summary
-source("Code/models.R")
+#Can be run freely 
+rm(list = setdiff(ls(), c("usoc","usoc_df"))) #Removing everything except for the OG "usoc" dataset
+gc()
+source("Code/sample_selection.R")
+source("Code/simple_model.R")
 source("Code/plots.R")
 
