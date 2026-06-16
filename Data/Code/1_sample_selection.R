@@ -11,13 +11,13 @@ working_df <- usoc_df %>%
 
 # Probit selection model
 probit_sel <- glm(
-  isWorking ~ lwage_lag + reg_unemp + NLW + numChild + isCare,
+  isWorking ~ lwage_lag + reg_unemp + realMW + numChild + isCare,
   data   = working_df,
   family = binomial(link = "probit")
 )
 summary(probit_sel)
 
-# Inverse Mills ratio: λ_it = φ(x'_it γ̂) / Φ(x'_it γ̂)
+# Inverse Mills ratio: λ_it = φ(x'_it γ) / Φ(x'_it γ)
 working_df <- working_df %>%
   mutate(
     xg  = predict(probit_sel, newdata = working_df, type = "link"),
@@ -34,22 +34,3 @@ working_df <- working_df %>%
   ) %>%
   ungroup() %>%
   filter(isWorking == 1, lwage > 0, !is.na(imr))
-
-
-
-sanity <- glm(
-  hiqual ~ ROSLA2013 + ROSLA2015 ,
-  data   = working_df,
-  family = binomial(link = "probit")
-)
-summary(sanity)
-
-model1 <- feols(
-  lwage ~ hiqual + expyrs + expyrs2 +
-    imr + sex + race + gor_dv + NLW ,
-  
-  data = working_df,
-  cluster = ~pidp
-)
-
-summary(model1)

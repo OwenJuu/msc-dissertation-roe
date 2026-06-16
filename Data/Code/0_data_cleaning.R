@@ -13,7 +13,7 @@ usoc_clean <- usoc %>%
   mutate(
     pidp = as.integer(pidp),
     year = as.integer(as.character(year)),
-
+    
     # ── Highest qualification ─────────────────────────────────────────────
     hiqual_dv  = str_trim(str_to_lower(hiqual_dv)),
     qfhigh_dv  = str_trim(str_to_lower(qfhigh_dv)),
@@ -54,7 +54,7 @@ usoc_clean <- usoc %>%
     ),
     expyrs  = cumsum(isWorking),
     expyrs2 = expyrs^2,
-  
+    
     # ── Caring ────────────────────────────────────────────────────────────
     aidhh = str_trim(str_to_lower(aidhh)),
     isCare = case_when(
@@ -112,10 +112,9 @@ usoc_clean <- usoc %>%
   
   # ── Apply all factors AFTER ungroup() to prevent attribute loss ─────────
   mutate(
-    hiqual = factor(hiqual,
+    hiqual = ordered(hiqual,
                     levels = c("Noqual", "GCSE", "ALevel", "OtherDip", 
-                               "Bachelor", "HigherDeg"),
-                    ordered = FALSE),
+                               "Bachelor", "HigherDeg")),
     race = factor(
       race,
       levels = c("White", "Asian", "Black", "Mixed", "Other")
@@ -128,26 +127,59 @@ usoc_clean <- usoc %>%
 
 
 # IMPORT EXTERNAL DATA AND MERGE WITH THE ORIGINAL DATASET
-macro <- read.csv("External Data/macro.csv")
+## Regional unemployment
 regional_unemp <- read.csv("External Data/regional_unemp.csv")
-regional_unemp_long <- regional_unemp %>%
+regional_hep <- read.csv(("External Data/regional_he_participation.csv"))
+regional_unemp_long <- regional_unemp %>% #Regional unemployment rate
   pivot_longer(
     cols = -year,
     names_to = "gor_dv",
     values_to = "reg_unemp"
   )
-
-usoc_clean <- left_join(usoc_clean, macro, by = "year")
 usoc_clean <- left_join(usoc_clean, regional_unemp_long, by = c("year", "gor_dv"))
+
+## Regional higher education participation
+regional_hep_long <- regional_hep %>%  # Regional HE participation by 20
+  pivot_longer(
+    cols = -year,
+    names_to = "gor_dv",
+    values_to = "reg_hep"
+  )
+usoc_clean <- left_join(usoc_clean, regional_hep_long, by = c("year", "gor_dv"))
+
+## Real minimum wage and CPI
+mw_cpi <- read_excel("External Data/mw_cpi.xlsx", sheet = "real_converted")
+
+get_real_mw <- function(year, age) {
+  if (is.na(year) || is.na(age)) return(NA)
+  if (!(year %in% mw_cpi$year)) return(NA)
+  
+  row <- mw_cpi[mw_cpi$year == year, ]
+  
+  col <- if (age < 18) {
+    "Under 18"
+  } else if (age >= 25) {
+    "25 and over"
+  } else {
+    as.character(age)
+  }
+  
+  val <- row[[col]]
+  if (is.na(val)) return(NA)
+  return(val)
+}
+
+# Apply to usoc_clean
+usoc_clean$realMW <- mapply(get_real_mw, usoc_clean$year, usoc_clean$age)
+usoc_clean$CPI <- mw_cpi$CPI[match(usoc_clean$year, mw_cpi$year)]
 
 # FINAL DATASET
 usoc_df <- usoc_clean %>%
   mutate(
-    NLW = NLW/CPI*100,
     lwage = asinh(fimnlabgrs_dv/CPI*100)
   ) %>%
-  select(pidp, year, age, birth_year, lwage, hiqual, GCSE, ALevel, Bachelor, HigherDeg, OtherDip,
-         expyrs, expyrs2, NLW, reg_unemp, ROSLA2013, ROSLA2015, isWorking, numChild,
+  dplyr::select(pidp, year, age, birth_year, lwage, hiqual, GCSE, ALevel, Bachelor, HigherDeg, OtherDip,
+         expyrs, expyrs2, realMW, reg_unemp, reg_hep, ROSLA2013, ROSLA2015, isWorking, numChild,
          isCare, PGLoan2016, Fee2012, race, sex, gor_dv, FTStudying) %>%
   #Have to put the mutate here because left_join forces gor_dv to be character
   mutate(
@@ -165,5 +197,5 @@ usoc_df <- usoc_clean %>%
   filter(!gor_dv %in% c("scotland", "northern.ireland", "wales"))  
 
 # Freeing some memory
-rm(macro, regional_unemp, regional_unemp_long, usoc_clean)
+rm(regional_unemp_long, regional_hep_long, usoc_clean)
 gc()

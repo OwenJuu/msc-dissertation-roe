@@ -1,8 +1,11 @@
 # Preample
 install.packages("devtools", type = "win.binary")
 devtools::install_github("wklimowicz/tidyusoc")
+devtools::install_github("yuchang0321/IVQR")
 
 #Install the following packages if missing:
+library(IVQR)
+library(readxl)
 library(patchwork)
 library(tidyverse)
 library(tidyusoc)
@@ -10,12 +13,12 @@ library(dplyr)
 library(stringr)
 library(plm)
 library(stargazer)
-library(ivreg)       # FD-IV with diagnostics
 library(fixest)      # TWFE / Sun & Abraham
 library(modelsummary)
 library(tsibble)
 library(splines)
-setwd("C:/Users/thuan/Downloads/msc-dissertation-roe/Data")
+library(MASS)
+setwd("C:/Users/tp01040/Downloads/msc-dissertation-roe/Data")
 
 # Compile raw data (run only once)
 usoc_convert(
@@ -46,12 +49,13 @@ usoc <- usoc_compile(
 )
 
 # Clean data (run only when adding new variables to save compile time)
-source("Code/data_cleaning.R")
+source("Code/0_data_cleaning.R")
+
 
 #Can be run freely 
 rm(list = setdiff(ls(), c("usoc","usoc_df"))) #Removing everything except for the OG "usoc" dataset
 gc()
-source("Code/sample_selection.R")
-source("Code/simple_model.R")
+source("Code/1_sample_selection.R")
+source("Code/2_simple_model.R")
 source("Code/plots.R")
 
