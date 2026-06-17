@@ -181,20 +181,22 @@ usoc_df <- usoc_clean %>%
   dplyr::select(pidp, year, age, birth_year, lwage, hiqual, GCSE, ALevel, Bachelor, HigherDeg, OtherDip,
          expyrs, expyrs2, realMW, reg_unemp, reg_hep, ROSLA2013, ROSLA2015, isWorking, numChild,
          isCare, PGLoan2016, Fee2012, race, sex, gor_dv, FTStudying) %>%
+
+
+  #England only because education policy instruments is different for these four
+  #as well there's no data on higher education participation
+  filter(!gor_dv %in% c("scotland", "northern.ireland", "wales", "channel.islands")) %>%
+  
   #Have to put the mutate here because left_join forces gor_dv to be character
   mutate(
     gor_dv = factor(
       gor_dv,
       levels = c(
-        "london", "channel.islands", "east", "east.midlands",
-        "north.east", "north.west", "northern.ireland", "scotland",
-        "south.east", "south.west", "wales", "west.midlands",
-        "yorkshire.and.the.humber"
+        "london", "east", "east.midlands", "north.east", "north.west", 
+        "south.east", "south.west", "west.midlands","yorkshire.and.the.humber"
       )
     )
-  ) %>%
-  #England only because education poicly instruments is different for these three
-  filter(!gor_dv %in% c("scotland", "northern.ireland", "wales"))  
+  )
 
 # Freeing some memory
 rm(regional_unemp_long, regional_hep_long, usoc_clean)

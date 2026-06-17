@@ -6,7 +6,7 @@ my_vars <- c("lwage", "year", "hiqual", "ALevel", "OtherDip", "Bachelor", "Highe
 
 # SIMPLE LINEAR
 simple_linear <- feols(
-  lwage ~ ALevel + OtherDip + Bachelor + HigherDeg + expyrs + expyrs2  
+  lwage ~ ALevel + Bachelor + HigherDeg + expyrs + expyrs2  
   + imr + sex + race | gor_dv^factor(year),                             
   data    = working_df,
   cluster = ~pidp
@@ -14,6 +14,15 @@ simple_linear <- feols(
 
 summary(simple_linear)
 
+# IV Panel
+iv_panel <- feols(
+  lwage ~   imr + sex + race + gor_dv | year | ALevel + Bachelor + HigherDeg 
+  + expyrs + expyrs2 ~ PGLoan2016 + Fee2012 + reg_unemp + reg_hep + emp_lag,                             
+  data    = working_df,
+  cluster = ~pidp
+)
+
+summary(iv_panel)
 # IVQR
 working_df$gor_dv = droplevels(working_df$gor_dv)
 qual_map <- c("NoQual" = 0, "GCSE" = 1, "ALevel" = 2, 

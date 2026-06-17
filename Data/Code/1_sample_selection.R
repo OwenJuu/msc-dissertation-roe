@@ -10,14 +10,15 @@ working_df <- usoc_df %>%
   ungroup()
 
 # Probit selection model
-probit_sel <- glm(
-  isWorking ~ lwage_lag + reg_unemp + realMW + numChild + isCare,
+probit_sel <- feglm(
+  isWorking ~ PGLoan2016 + Fee2012 + reg_unemp + reg_hep + emp_lag + lwage_lag
+  + numChild + isCare + sex + race,
   data   = working_df,
   family = binomial(link = "probit")
 )
 summary(probit_sel)
 
-# Inverse Mills ratio: λ_it = φ(x'_it γ) / Φ(x'_it γ)
+# Inverse Mills ratio
 working_df <- working_df %>%
   mutate(
     xg  = predict(probit_sel, newdata = working_df, type = "link"),
@@ -30,7 +31,7 @@ working_df <- working_df %>%
   group_by(pidp) %>%
   filter(
     first(age) < 18 |
-      (first(age) >= 18 & first(age) <= 21 & first(FTStudying) == 1)
+      (first(age) >= 18 & first(age) <= 23 & first(FTStudying) == 1)
   ) %>%
   ungroup() %>%
   filter(isWorking == 1, lwage > 0, !is.na(imr))
