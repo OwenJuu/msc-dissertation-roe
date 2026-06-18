@@ -12,7 +12,7 @@ library(tidyusoc)
 library(dplyr)
 library(stringr)
 library(plm)
-library(stargazer)
+library(gtsummary)
 library(fixest)      # TWFE / Sun & Abraham
 library(modelsummary)
 library(tsibble)

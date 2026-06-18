@@ -77,6 +77,15 @@ usoc_clean <- usoc %>%
     ROSLA2015   = as.integer(birth_year >= 1998),
     PGLoan2016  = as.integer(year >= 2016 & age >= 21 & age <= 30),
     Fee2012     = as.integer(year >= 2012 & age >= 18 & age <= 20),
+    home_bachfee= case_when(
+      birth_year + 18 < 1998 ~ "0",
+      birth_year + 18 >= 1998 & birth_year + 18 <= 2005 ~ "1000",
+      birth_year + 18 >= 2006 & birth_year + 18 <= 2011 ~ "3000",
+      birth_year + 18 >= 2012 & birth_year + 18 <= 2016 ~ "9000",
+      birth_year + 18 >= 2017 & birth_year + 18 <= 2024 ~ "9250"
+    ),
+    home_bachfee = factor(home_bachfee, levels = c("0", "1000", "3000", "9000", "9250")),
+    
     
     # ── Race group (kept as character here; factor applied after ungroup) ─
     # Race is often recorded once and left missing in other waves.
@@ -112,7 +121,7 @@ usoc_clean <- usoc %>%
   
   # ── Apply all factors AFTER ungroup() to prevent attribute loss ─────────
   mutate(
-    hiqual = ordered(hiqual,
+    hiqual = factor(hiqual,
                     levels = c("Noqual", "GCSE", "ALevel", "OtherDip", 
                                "Bachelor", "HigherDeg")),
     race = factor(
@@ -179,7 +188,7 @@ usoc_df <- usoc_clean %>%
     lwage = asinh(fimnlabgrs_dv/CPI*100)
   ) %>%
   dplyr::select(pidp, year, age, birth_year, lwage, hiqual, GCSE, ALevel, Bachelor, HigherDeg, OtherDip,
-         expyrs, expyrs2, realMW, reg_unemp, reg_hep, ROSLA2013, ROSLA2015, isWorking, numChild,
+         expyrs, expyrs2, realMW, reg_unemp, home_bachfee, reg_hep, ROSLA2013, ROSLA2015, isWorking, numChild,
          isCare, PGLoan2016, Fee2012, race, sex, gor_dv, FTStudying) %>%
 
 
@@ -198,6 +207,6 @@ usoc_df <- usoc_clean %>%
     )
   )
 
-# Freeing some memory
-rm(regional_unemp_long, regional_hep_long, usoc_clean)
+#Removing everything except for the OG "usoc" dataset, and freeing some memory
+rm(list = setdiff(ls(), c("usoc","usoc_df", "mw_cpi", "regional_hep", "regional_unemp"))) 
 gc()

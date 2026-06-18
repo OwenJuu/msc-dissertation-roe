@@ -11,8 +11,8 @@ working_df <- usoc_df %>%
 
 # Probit selection model
 probit_sel <- feglm(
-  isWorking ~ PGLoan2016 + Fee2012 + reg_unemp + reg_hep + emp_lag + lwage_lag
-  + numChild + isCare + sex + race,
+  isWorking ~ PGLoan2016 + home_bachfee + emp_lag + reg_unemp 
+  + lwage_lag + numChild + isCare + sex + race + gor_dv,
   data   = working_df,
   family = binomial(link = "probit")
 )
@@ -30,8 +30,7 @@ working_df <- working_df %>%
 working_df <- working_df %>%
   group_by(pidp) %>%
   filter(
-    first(age) < 18 |
-      (first(age) >= 18 & first(age) <= 23 & first(FTStudying) == 1)
+    first(age) <= 18|(first(age) > 18 & first(age) <= 23 & first(FTStudying) == 1)
   ) %>%
   ungroup() %>%
   filter(isWorking == 1, lwage > 0, !is.na(imr))
