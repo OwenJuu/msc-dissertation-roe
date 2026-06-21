@@ -48,13 +48,17 @@ usoc <- usoc_compile(
   extra_mappings = custom_mappings
 )
 
+#Removing everything except for the OG "usoc" dataset
+rm(list = setdiff(ls(), c("usoc"))) 
+gc()
+
 # Clean data (run only when adding new variables to save compile time)
 source("Code/0_data_cleaning.R")
 
-
-#Can be run freely 
-rm(list = setdiff(ls(), c("usoc","usoc_df"))) #Removing everything except for the OG "usoc" dataset
+#Removing everything except for the OG "usoc" dataset, and freeing some memory
+rm(list = setdiff(ls(), c("usoc","usoc_df", "mw_cpi", "regional_hep", "regional_unemp"))) 
 gc()
+
 source("Code/1_sample_selection.R")
 source("Code/2_simple_model.R")
 source("Code/plots.R")

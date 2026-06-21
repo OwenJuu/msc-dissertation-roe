@@ -1,12 +1,3 @@
-# CLEAN DATA
-invalid_race <- c(
-  NA,
-  "missing",
-  "proxy",
-  "refusal",
-  "inapplicable"
-)
-
 usoc_clean <- usoc %>%
   arrange(pidp, year) %>%
   group_by(pidp) %>%
@@ -28,12 +19,12 @@ usoc_clean <- usoc %>%
     ),
     
     # ── Binary education dummies ──────────────────────────────────────────
-    # No qual < GCSE < ALevel < Bachelor/OtherDip < HigherDeg
-    GCSE        = ifelse(!is.na(hiqual) & !hiqual %in% c("Noqual"), 1L, 0L),
-    ALevel      = ifelse(!is.na(hiqual) & !hiqual %in% c("Noqual", "GCSE"), 1L, 0L),
-    Bachelor    = ifelse(!is.na(hiqual) &  hiqual %in% c("Bachelor", "HigherDeg"), 1L, 0L),
-    HigherDeg   = ifelse(!is.na(hiqual) &  hiqual == "HigherDeg", 1L, 0L),
-    OtherDip = ifelse(!is.na(hiqual) &  hiqual == "OtherDip", 1L, 0L),
+    # No qual < GCSE < ALevel < Bachelor < HigherDeg. OtherDip stands alone
+    GCSE     = ifelse(!is.na(hiqual) & hiqual != "Noqual", 1L, 0L),
+    ALevel   = ifelse(hiqual %in% c("ALevel", "Bachelor", "HigherDeg"), 1L, 0L),
+    Bachelor = ifelse(hiqual %in% c("Bachelor", "HigherDeg"), 1L, 0L),
+    HigherDeg= ifelse(hiqual == "HigherDeg", 1L, 0L),
+    OtherDip = ifelse(hiqual == "OtherDip", 1L, 0L),
     
     # ── Employment / experience ───────────────────────────────────────────
     jbstat = str_trim(str_to_lower(jbstat)),
@@ -59,7 +50,7 @@ usoc_clean <- usoc %>%
     aidhh = str_trim(str_to_lower(aidhh)),
     isCare = case_when(
       aidhh == "yes" ~ 1L,
-      aidhh == "no"  ~ 0L,
+      aidhh %in% c("no", "inapplicable") ~ 0L,
       TRUE           ~ NA_integer_
     ),
     
@@ -94,7 +85,7 @@ usoc_clean <- usoc %>%
     race = str_trim(str_to_lower(race)),
     race = first(
       race[
-        !is.na(race) & !race %in% invalid_race
+        !is.na(race) & !race %in% c(NA, "missing", "proxy", "refusal","inapplicable")
       ],
       default = NA_character_
     ),
@@ -138,7 +129,6 @@ usoc_clean <- usoc %>%
 # IMPORT EXTERNAL DATA AND MERGE WITH THE ORIGINAL DATASET
 ## Regional unemployment
 regional_unemp <- read.csv("External Data/regional_unemp.csv")
-regional_hep <- read.csv(("External Data/regional_he_participation.csv"))
 regional_unemp_long <- regional_unemp %>% #Regional unemployment rate
   pivot_longer(
     cols = -year,
@@ -146,15 +136,6 @@ regional_unemp_long <- regional_unemp %>% #Regional unemployment rate
     values_to = "reg_unemp"
   )
 usoc_clean <- left_join(usoc_clean, regional_unemp_long, by = c("year", "gor_dv"))
-
-## Regional higher education participation
-regional_hep_long <- regional_hep %>%  # Regional HE participation by 20
-  pivot_longer(
-    cols = -year,
-    names_to = "gor_dv",
-    values_to = "reg_hep"
-  )
-usoc_clean <- left_join(usoc_clean, regional_hep_long, by = c("year", "gor_dv"))
 
 ## Real minimum wage and CPI
 mw_cpi <- read_excel("External Data/mw_cpi.xlsx", sheet = "real_converted")
@@ -181,15 +162,17 @@ get_real_mw <- function(year, age) {
 # Apply to usoc_clean
 usoc_clean$realMW <- mapply(get_real_mw, usoc_clean$year, usoc_clean$age)
 usoc_clean$CPI <- mw_cpi$CPI[match(usoc_clean$year, mw_cpi$year)]
+usoc_clean$Kaitz <- mw_cpi$Kaitz[match(usoc_clean$year, mw_cpi$year)]
 
 # FINAL DATASET
 usoc_df <- usoc_clean %>%
   mutate(
     lwage = asinh(fimnlabgrs_dv/CPI*100)
   ) %>%
-  dplyr::select(pidp, year, age, birth_year, lwage, hiqual, GCSE, ALevel, Bachelor, HigherDeg, OtherDip,
-         expyrs, expyrs2, realMW, reg_unemp, home_bachfee, reg_hep, ROSLA2013, ROSLA2015, isWorking, numChild,
-         isCare, PGLoan2016, Fee2012, race, sex, gor_dv, FTStudying) %>%
+  dplyr::select(pidp, year, age, birth_year, lwage, hiqual, GCSE, ALevel, 
+                Bachelor, HigherDeg, OtherDip, expyrs, expyrs2, realMW, Kaitz, 
+                reg_unemp, home_bachfee, isWorking, numChild, isCare, 
+                PGLoan2016, Fee2012, race, sex, gor_dv, FTStudying) %>%
 
 
   #England only because education policy instruments is different for these four
@@ -206,7 +189,3 @@ usoc_df <- usoc_clean %>%
       )
     )
   )
-
-#Removing everything except for the OG "usoc" dataset, and freeing some memory
-rm(list = setdiff(ls(), c("usoc","usoc_df", "mw_cpi", "regional_hep", "regional_unemp"))) 
-gc()
