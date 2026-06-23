@@ -38,7 +38,9 @@ custom_mappings <- function(cols) {
     "aidhh", "aidhh", "factor",
     "sex", "sex", "factor",
     "qfhigh_dv", "qfhigh_dv", "factor",
-    "birthy", "birth_year", "numeric"
+    "birthy", "birth_year", "numeric",
+    "maedqf", "momeduc", "factor",
+    "cgwrd_dv", "ability", "factor"
   )
   return(custom_variables)
 }
@@ -61,5 +63,12 @@ gc()
 
 source("Code/1_sample_selection.R")
 source("Code/2_simple_model.R")
+
+##Exporting model's result
+etable(
+  simple_linear, iv_panel
+  #tex = TRUE,
+  #file = "results.tex"
+)
 source("Code/plots.R")
 

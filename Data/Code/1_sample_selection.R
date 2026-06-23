@@ -1,3 +1,9 @@
+# variable list
+# - Endogenous: ALevel + Bachelor + HigherDeg + expyrs + expyrs2
+# - Control: sex + race + momeduc + factor(birth_year)
+# - Instruments: PGLoan2016 + home_bachfee + emp_lag + reg_unemp18 + reg_unicount18
+# - Selection: numChild + isCare + lwage_lag
+
 #Creating lag(wage)
 working_df <- usoc_df %>%
   ungroup() %>%
@@ -11,8 +17,8 @@ working_df <- usoc_df %>%
 
 # Probit selection model
 probit_sel <- feglm(
-  isWorking ~ PGLoan2016 + home_bachfee + emp_lag + reg_unemp 
-  + lwage_lag + numChild + isCare + sex + race + gor_dv + factor(year),
+  isWorking ~ numChild + isCare + sex + race + momeduc + ability
+  + PGLoan2016 + home_bachfee + emp_lag + reg_unemp18 + reg_unicount18, 
   data   = working_df,
   family = binomial(link = "probit")
 )
@@ -34,5 +40,3 @@ working_df <- working_df %>%
   ) %>%
   ungroup() %>%
   filter(isWorking == 1, lwage > 0)
-
-clean_workingdf <- working_df[complete.cases(working_df), ]
