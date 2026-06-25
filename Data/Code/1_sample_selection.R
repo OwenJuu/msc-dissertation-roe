@@ -33,10 +33,13 @@ working_df <- working_df %>%
     imr = pmin(imr, quantile(imr, 0.99, na.rm = TRUE))
   )
 
-working_df <- working_df %>%
-  group_by(pidp) %>%
-  filter(
-    first(age) <= 18|(first(age) > 18 & first(age) <= 23 & first(FTStudying) == 1)
-  ) %>%
+working_df <- usoc_df %>%
   ungroup() %>%
-  filter(isWorking == 1, lwage > 0)
+  arrange(pidp, year) %>%
+  group_by(pidp) %>%
+  mutate(
+    lwage_lag  = dplyr::lag(lwage, n = 1), # t-1
+    emp_lag = dplyr::lag(isWorking, n = 1),
+  ) %>%
+  filter(first(age) <= 23, lwage > 0) %>%
+  ungroup()

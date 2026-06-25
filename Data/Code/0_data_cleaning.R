@@ -1,30 +1,66 @@
 usoc_clean <- usoc %>%
+  mutate(
+    pidp = as.integer(as.character(pidp)),
+    year = as.integer(as.character(year))) %>%
   arrange(pidp, year) %>%
   group_by(pidp) %>%
   mutate(
-    pidp = as.integer(pidp),
-    year = as.integer(as.character(year)),
+    birth_year = ifelse(is.na(birth_year), year - age, birth_year),
     
     # ── Highest qualification ─────────────────────────────────────────────
+    # Creating vocational study variable.
+    appr  = str_trim(str_to_lower(appr)),
+    appr = case_when(
+      appr == "mentioned" ~ 1L,
+      TRUE ~ NA_integer_
+    ),
+    NVQ  = str_trim(str_to_lower(NVQ)),
+    NVQ = case_when(
+      NVQ == "mentioned" ~ 1L,
+      TRUE ~ NA_integer_
+    ),
+    ONC  = str_trim(str_to_lower(ONC)),
+    ONC = case_when(
+      ONC == "mentioned" ~ 1L,
+      TRUE ~ NA_integer_
+    ),
+    BTEC = str_trim(str_to_lower(BTEC)),
+    BTEC = case_when(
+      BTEC == "mentioned" ~ 1L,
+      TRUE ~ NA_integer_
+    ),
+    VOC = case_when(
+      (appr == 1 | NVQ == 1 | ONC == 1 | BTEC == 1) ~ 1L,
+      TRUE ~ NA_integer_
+    ),
+    VOC = zoo::na.locf(VOC, na.rm = FALSE),
+    VOC = replace(VOC, is.na(VOC), 0L),
+    
     hiqual_dv  = str_trim(str_to_lower(hiqual_dv)),
     qfhigh_dv  = str_trim(str_to_lower(qfhigh_dv)),
     hiqual = case_when(
-      hiqual_dv %in% c("no qualification", "no qual")          ~ "Noqual",
-      hiqual_dv == "gcse etc"                                  ~ "GCSE",
-      hiqual_dv %in% c("a level etc", "a-level etc")           ~ "ALevel",
-      hiqual_dv == "degree" & qfhigh_dv == "higher degree"     ~ "HigherDeg",
-      hiqual_dv == "degree"                                    ~ "Bachelor",
-      hiqual_dv %in% c("other higher", "other higher degree")  ~ "OtherDip",
-      TRUE                                                     ~ NA_character_
+      hiqual_dv %in% c("no qualification", "no qual")           ~ "Noqual",
+      hiqual_dv == "gcse etc"                                   ~ "GCSE",
+      hiqual_dv %in% c("a level etc", "a-level etc") & VOC == 1 ~ "Vocational",
+      hiqual_dv %in% c("a level etc", "a-level etc")            ~ "ALevel",
+      hiqual_dv == "degree" & qfhigh_dv == "higher degree"      ~ "HigherDeg",
+      hiqual_dv == "degree"                                     ~ "Bachelor",
+      hiqual_dv %in% c("other higher", "other higher degree")   ~ "OtherDip",
+      TRUE                                                      ~ NA_character_
     ),
-    
+
     # ── Binary education dummies ──────────────────────────────────────────
     # No qual < GCSE < ALevel < Bachelor < HigherDeg. OtherDip stands alone
-    GCSE     = ifelse(!is.na(hiqual) & hiqual != "Noqual", 1L, 0L),
-    ALevel   = ifelse(hiqual %in% c("ALevel", "Bachelor", "HigherDeg"), 1L, 0L),
-    Bachelor = ifelse(hiqual %in% c("Bachelor", "HigherDeg"), 1L, 0L),
-    HigherDeg= ifelse(hiqual == "HigherDeg", 1L, 0L),
-    OtherDip = ifelse(hiqual == "OtherDip", 1L, 0L),
+    GCSE      = case_when(hiqual == "Noqual" ~ 0L, TRUE ~ 1L),
+    ALevel    = case_when(hiqual %in% c("ALevel","Bachelor","HigherDeg") ~ 1L, TRUE ~ 0L),
+    Bachelor  = case_when(hiqual %in% c("Bachelor","HigherDeg") ~ 1L, TRUE ~ 0L),
+    HigherDeg = case_when(hiqual == "HigherDeg" ~ 1L, TRUE ~ 0L),
+    OtherDip = case_when(
+      (hiqual == "OtherDip") ~ 1L,
+      TRUE ~ NA_integer_
+    ),
+    OtherDip = zoo::na.locf(OtherDip, na.rm = FALSE),
+    OtherDip = replace(OtherDip, is.na(OtherDip), 0L),
     
     # ── Employment / experience ───────────────────────────────────────────
     jbstat = str_trim(str_to_lower(jbstat)),
@@ -45,6 +81,7 @@ usoc_clean <- usoc %>%
     ),
     expyrs  = cumsum(isWorking),
     expyrs2 = expyrs^2,
+    emp_lag = dplyr::lag(isWorking, n = 1),
     
     # ── Caring ────────────────────────────────────────────────────────────
     aidhh = str_trim(str_to_lower(aidhh)),
@@ -64,14 +101,18 @@ usoc_clean <- usoc %>%
     ),
     
     # ── Policy instruments ────────────────────────────────────────────────
-    year18 = birth_year + 18, #Year at 18 years old
-    PGLoan2016  = as.integer(year >= 2016 & age >= 22 & age < 60),
+    year16 = birth_year + 16, #Year at 16 years old
+    year18 = birth_year + 18,
+    PGLoan2016  = as.integer(year >= 2016 & Bachelor == 1 & age < 60),
     home_bachfee = case_when( #Home bachelor tuition fee at 18 y/o
       (year18 < 1998) ~ 0,
       (year18 >= 1998 & year18 <= 2005) ~ 1000,
       (year18 >= 2006 & year18 <= 2011) ~ 3000,
       (year18 >= 2012 & year18 <= 2016) ~ 9000,
-      (year18 >= 2017 & year18 <= 2024) ~ 9250
+      (year18 >= 2017 & year18 <= 2024) ~ 9250,
+      (year18 >= 2017 & year18 <= 2024) ~ 9250,
+      (year18 == 2025) ~ 9535,
+      (year18 == 2026) ~ 9795
     ),
     
     # ── Race group (kept as character here; factor applied after ungroup) ─
@@ -105,10 +146,9 @@ usoc_clean <- usoc %>%
     ability = case_when(
       ability == "no item answered correctly" ~ 0,
       ability == "all items answered correctly" ~ 10,
-      ability %in% c("1", "2", "3", "4", "5", "6", "7", "8", "9") ~ as.numeric(ability),
-      TRUE ~ NA_real_
+      ability %in% as.character(1:9) ~ as.numeric(as.character(ability)),
+      TRUE ~ NA_integer_
     ),
-    ability = factor(ability, levels = 0:10),
     
     # ── Sex (kept as character here; factor applied after ungroup) ────────
     sex = str_trim(str_to_lower(sex)),
@@ -119,6 +159,10 @@ usoc_clean <- usoc %>%
     ),
     
     momeduc = str_trim(str_to_lower(momeduc)),
+    momeduc = first(
+      momeduc[!is.na(momeduc) & !momeduc %in% c("missing", "proxy", "refusal","inapplicable")],
+      default = NA_character_
+    ),
     momeduc = case_when(
       momeduc %in% c("never went to school", "she did not go to school at all") ~ "No Schooling",
       momeduc %in% c("left school no quals", "she left school with no qualifications or certificates") ~ "Left school no quals",
@@ -128,18 +172,20 @@ usoc_clean <- usoc %>%
       TRUE ~ NA_character_
     ),
     
-    momeduc = first(
-      momeduc[!is.na(momeduc)],
-      default = NA_character_
-    ),
+    numSib = case_when(
+      numSib == "none in hh" ~ 0,
+      numSib %in% as.character(1:12) ~ as.numeric(as.character(numSib)),
+      TRUE ~ NA_integer_
+    )
+    
   ) %>%
   ungroup() %>%
   
   # ── Apply all factors AFTER ungroup() to prevent attribute loss ─────────
   mutate(
     hiqual = factor(hiqual,
-                    levels = c("Noqual", "GCSE", "ALevel", "OtherDip", 
-                               "Bachelor", "HigherDeg")),
+                    levels = c("Noqual", "GCSE", "ALevel", "Vocational", 
+                               "OtherDip", "Bachelor", "HigherDeg")),
     race = factor(race,
       levels = c("White", "Asian", "Black", "Mixed", "Other")),
     sex = factor(sex,
@@ -155,20 +201,23 @@ usoc_clean <- usoc %>%
 regional_unemp <- read_excel("External Data/regional.xlsx", sheet = "unemp")
 regional_unemp_long <- regional_unemp %>% #Regional unemployment rate
   pivot_longer(
-    cols = -year18,
+    cols = -year16,
     names_to = "gor_dv",
-    values_to = "reg_unemp18"
+    values_to = "reg_unemp16"
   )
-usoc_clean <- left_join(usoc_clean, regional_unemp_long, by = c("year18", "gor_dv"))
+usoc_clean <- left_join(usoc_clean, regional_unemp_long, by = c("year16", "gor_dv"))
 
 regional_unicount <- read_excel("External Data/regional.xlsx", sheet = "unicount")
 regional_unicount_long <- regional_unicount %>%
   pivot_longer(
-    cols = -year18,
+    cols = -year16,
     names_to = "gor_dv",
-    values_to = "reg_unicount18"
+    values_to = "reg_unicount16"
   )
-usoc_clean <- left_join(usoc_clean, regional_unicount_long, by = c("year18", "gor_dv"))
+usoc_clean <- left_join(usoc_clean, regional_unicount_long, by = c("year16", "gor_dv"))
+
+CPI18 <- read_excel("External Data/regional.xlsx", sheet = "CPI18")
+usoc_clean <- left_join(usoc_clean, CPI18, by = "year18")
 
 ## Real minimum wage and CPI
 mw_cpi <- read_excel("External Data/mw_cpi.xlsx", sheet = "real_converted")
@@ -201,15 +250,15 @@ usoc_clean$Kaitz <- mw_cpi$Kaitz[match(usoc_clean$year, mw_cpi$year)]
 usoc_df <- usoc_clean %>%
   mutate(
     lwage = asinh(fimnlabgrs_dv/CPI*100),
-    real_hbachfee = (home_bachfee/CPI*100),
+    real_hbachfee = (home_bachfee/CPI18*100),
     home_bachfee = as.character(home_bachfee),
     home_bachfee = factor(home_bachfee,
-                    levels = c("0", "1000", "3000", "9000", "9200")),
+                    levels = c("0", "1000", "3000", "9000", "9250", "9535", "9795")),
   ) %>%
-  dplyr::select(pidp, year, age, birth_year, lwage, hiqual, GCSE, ALevel, 
-                Bachelor, HigherDeg, OtherDip, expyrs, expyrs2, realMW, Kaitz, 
-                reg_unemp18, ability, reg_unicount18, real_hbachfee, home_bachfee, isWorking, 
-                numChild, isCare, PGLoan2016, race, sex, gor_dv, momeduc, FTStudying) %>%
+  dplyr::select(pidp, year, age, birth_year, lwage, hiqual, GCSE, ALevel, VOC, 
+                Bachelor, HigherDeg, OtherDip, expyrs, expyrs2, Kaitz, 
+                reg_unemp16, ability, emp_lag, reg_unicount16, real_hbachfee, home_bachfee, isWorking, 
+                numChild, isCare, numSib, PGLoan2016, race, sex, gor_dv, momeduc, FTStudying) %>%
 
 
   #England only because education policy instruments is different for these four
@@ -226,3 +275,10 @@ usoc_df <- usoc_clean %>%
       )
     )
   )
+
+usoc_working <- usoc_df %>%
+  ungroup() %>%
+  arrange(pidp, year) %>%
+  group_by(pidp) %>%
+  filter(min(age) <= 23, lwage > 0) %>%
+  ungroup()

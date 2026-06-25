@@ -40,7 +40,12 @@ custom_mappings <- function(cols) {
     "qfhigh_dv", "qfhigh_dv", "factor",
     "birthy", "birth_year", "numeric",
     "maedqf", "momeduc", "factor",
-    "cgwrd_dv", "ability", "factor"
+    "cgwrd_dv", "ability", "factor",
+    "nnsib_dv", "numSib", "factor",
+    "qfvoc5", "appr", "factor",
+    "qfvoc10", "NVQ", "factor",
+    "qfvoc12", "ONC", "factor",
+    "qfvoc13", "BTEC", "factor",
   )
   return(custom_variables)
 }
@@ -58,7 +63,7 @@ gc()
 source("Code/0_data_cleaning.R")
 
 #Removing everything except for the OG "usoc" dataset, and freeing some memory
-rm(list = setdiff(ls(), c("usoc","usoc_df", "mw_cpi", "regional_hep", "regional_unemp"))) 
+rm(list = setdiff(ls(), c("usoc","usoc_working", "mw_cpi", "regional_hep", "regional_unemp"))) 
 gc()
 
 source("Code/1_sample_selection.R")
