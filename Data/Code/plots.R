@@ -14,28 +14,28 @@ mw_grid <- seq(min(usoc_working$Kaitz, na.rm = TRUE),
 bk  <- attr(bs(usoc_working$Kaitz, df = 4), "Boundary.knots")
 B   <- bs(mw_grid, df = 4, Boundary.knots = bk)  # 200 x 3 matrix
 
-# ── 3. Compute marginal return to VOC at each MW point ────────────────────
-# Return = beta_VOC + gamma1*b1(w) + gamma2*b2(w) + gamma3*b3(w)
+# ── 3. Compute marginal return to ALevel at each MW point ────────────────────
+# Return = beta_ALevel + gamma1*b1(w) + gamma2*b2(w) + gamma3*b3(w)
 
-beta_A  <- coefs["fit_VOC"]
-gamma_A <- coefs[c("fit_VOC:bs(Kaitz, 4)1",
-                   "fit_VOC:bs(Kaitz, 4)2",
-                   "fit_VOC:bs(Kaitz, 4)3",
-                   "fit_VOC:bs(Kaitz, 4)4")]
+beta_A  <- coefs["fit_ALevel"]
+gamma_A <- coefs[c("fit_ALevel:bs(Kaitz, 4)1",
+                   "fit_ALevel:bs(Kaitz, 4)2",
+                   "fit_ALevel:bs(Kaitz, 4)3",
+                   "fit_ALevel:bs(Kaitz, 4)4")]
 
 # Marginal return vector (200 x 1)
 # Return(w) = beta_A + B %*% gamma_A
 returns <- beta_A + B %*% gamma_A
 
 # ── 4. Compute standard errors via delta method ───────────────────────────────
-# Return(w) = c(w)' theta, where c(w) = [0,...,1(VOC),...,b1,b2,b3,...]
+# Return(w) = c(w)' theta, where c(w) = [0,...,1(ALevel),...,b1,b2,b3,...]
 # We need to extract the relevant rows/cols from vcov
 
-param_names <- c("fit_VOC",
-                 "fit_VOC:bs(Kaitz, 4)1",
-                 "fit_VOC:bs(Kaitz, 4)2",
-                 "fit_VOC:bs(Kaitz, 4)3",
-                 "fit_VOC:bs(Kaitz, 4)4")
+param_names <- c("fit_ALevel",
+                 "fit_ALevel:bs(Kaitz, 4)1",
+                 "fit_ALevel:bs(Kaitz, 4)2",
+                 "fit_ALevel:bs(Kaitz, 4)3",
+                 "fit_ALevel:bs(Kaitz, 4)4")
 
 V_sub <- V[param_names, param_names]
 
@@ -62,9 +62,10 @@ ggplot(plot_df, aes(x = Kaitz, y = ret)) +
   geom_line(colour = "steelblue", linewidth = 1) +
   labs(
     x        = "Kaitz index",
-    y        = expression("Return coefficient of VOC  " * (hat(beta)[A](w))),
+    y        = expression("Return coefficient of ALevel  " * (hat(beta)[A](w))),
     caption  = "Note: Shaded area shows 95% pointwise confidence band.\nEstimated via delta method on clustered standard errors."
   ) +
+  coord_cartesian(ylim = c(-5, 5)) +
   theme_bw(base_size = 13) +
   theme(
     plot.title    = element_text(face = "bold"),

@@ -103,6 +103,7 @@ usoc_clean <- usoc %>%
     # ── Policy instruments ────────────────────────────────────────────────
     year16 = birth_year + 16, #Year at 16 years old
     year18 = birth_year + 18,
+    year21 = birth_year + 21,
     PGLoan2016  = as.integer(year >= 2016 & Bachelor == 1 & age < 60),
     home_bachfee = case_when( #Home bachelor tuition fee at 18 y/o
       (year18 < 1998) ~ 0,
@@ -201,23 +202,28 @@ usoc_clean <- usoc %>%
 regional_unemp <- read_excel("External Data/regional.xlsx", sheet = "unemp")
 regional_unemp_long <- regional_unemp %>% #Regional unemployment rate
   pivot_longer(
-    cols = -year16,
+    cols = -year,
     names_to = "gor_dv",
-    values_to = "reg_unemp16"
+    values_to = "reg_unemp"
   )
-usoc_clean <- left_join(usoc_clean, regional_unemp_long, by = c("year16", "gor_dv"))
 
 regional_unicount <- read_excel("External Data/regional.xlsx", sheet = "unicount")
 regional_unicount_long <- regional_unicount %>%
   pivot_longer(
-    cols = -year16,
+    cols = -year,
     names_to = "gor_dv",
     values_to = "reg_unicount16"
   )
-usoc_clean <- left_join(usoc_clean, regional_unicount_long, by = c("year16", "gor_dv"))
 
 CPI18 <- read_excel("External Data/regional.xlsx", sheet = "CPI18")
-usoc_clean <- left_join(usoc_clean, CPI18, by = "year18")
+
+usoc_df <- usoc_clean %>%
+  left_join(regional_unemp_long, by = c("year16" = "year", "gor_dv")) %>%
+  dplyr::rename(reg_unemp16 = reg_unemp) %>%
+  left_join(regional_unemp_long, by = c("year21" = "year", "gor_dv")) %>%
+  dplyr::rename(reg_unemp21 = reg_unemp) %>%
+  left_join(regional_unicount_long, by = c("year16" = "year", "gor_dv")) %>%
+  left_join(CPI18, by = c("year18" = "year"))
 
 ## Real minimum wage and CPI
 mw_cpi <- read_excel("External Data/mw_cpi.xlsx", sheet = "real_converted")
@@ -242,22 +248,19 @@ get_real_mw <- function(year, age) {
 }
 
 # Apply to usoc_clean
-usoc_clean$realMW <- mapply(get_real_mw, usoc_clean$year, usoc_clean$age)
-usoc_clean$CPI <- mw_cpi$CPI[match(usoc_clean$year, mw_cpi$year)]
-usoc_clean$Kaitz <- mw_cpi$Kaitz[match(usoc_clean$year, mw_cpi$year)]
+usoc_df$realMW <- mapply(get_real_mw, usoc_clean$year, usoc_clean$age)
+usoc_df$CPI <- mw_cpi$CPI[match(usoc_clean$year, mw_cpi$year)]
+usoc_df$Kaitz <- mw_cpi$Kaitz[match(usoc_clean$year, mw_cpi$year)]
 
 # FINAL DATASET
-usoc_df <- usoc_clean %>%
+usoc_df <- usoc_df %>%
   mutate(
     lwage = asinh(fimnlabgrs_dv/CPI*100),
     real_hbachfee = (home_bachfee/CPI18*100),
-    home_bachfee = as.character(home_bachfee),
-    home_bachfee = factor(home_bachfee,
-                    levels = c("0", "1000", "3000", "9000", "9250", "9535", "9795")),
   ) %>%
   dplyr::select(pidp, year, age, birth_year, lwage, hiqual, GCSE, ALevel, VOC, 
                 Bachelor, HigherDeg, OtherDip, expyrs, expyrs2, Kaitz, 
-                reg_unemp16, ability, emp_lag, reg_unicount16, real_hbachfee, home_bachfee, isWorking, 
+                reg_unemp16, reg_unemp21, ability, emp_lag, reg_unicount16, real_hbachfee, home_bachfee, isWorking, 
                 numChild, isCare, numSib, PGLoan2016, race, sex, gor_dv, momeduc, FTStudying) %>%
 
 
