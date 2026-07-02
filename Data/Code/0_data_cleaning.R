@@ -51,20 +51,29 @@ usoc_clean <- usoc %>%
 
     # ── Binary education dummies ──────────────────────────────────────────
     # No qual < GCSE < ALevel < Bachelor < HigherDeg. OtherDip stands alone
-    GCSE      = case_when(hiqual == "Noqual" ~ 0L, TRUE ~ 1L),
-    ALevel    = case_when(hiqual %in% c("ALevel","Bachelor","HigherDeg") ~ 1L, TRUE ~ 0L),
-    Bachelor  = case_when(hiqual %in% c("Bachelor","HigherDeg") ~ 1L, TRUE ~ 0L),
-    HigherDeg = case_when(hiqual == "HigherDeg" ~ 1L, TRUE ~ 0L),
-    OtherDip = case_when(
-      (hiqual == "OtherDip") ~ 1L,
-      TRUE ~ NA_integer_
-    ),
+    GCSE = case_when(hiqual == "GCSE" ~ 1L, TRUE ~ NA_integer_),
+    GCSE = zoo::na.locf(GCSE, na.rm = FALSE),
+    GCSE = replace(GCSE, is.na(GCSE), 0L),
+    
+    ALevel = case_when(hiqual == "ALevel" ~ 1L, TRUE ~ NA_integer_),
+    ALevel = zoo::na.locf(ALevel, na.rm = FALSE),
+    ALevel = replace(ALevel, is.na(ALevel), 0L),
+    
+    Bachelor = case_when(hiqual == "Bachelor" ~ 1L, TRUE ~ NA_integer_),
+    Bachelor = zoo::na.locf(Bachelor, na.rm = FALSE),
+    Bachelor = replace(Bachelor, is.na(Bachelor), 0L),
+    
+    HigherDeg = case_when(hiqual == "HigherDeg" ~ 1L, TRUE ~ NA_integer_),
+    HigherDeg = zoo::na.locf(HigherDeg, na.rm = FALSE),
+    HigherDeg = replace(HigherDeg, is.na(HigherDeg), 0L),
+    
+    OtherDip = case_when(hiqual == "OtherDip" ~ 1L, TRUE ~ NA_integer_),
     OtherDip = zoo::na.locf(OtherDip, na.rm = FALSE),
     OtherDip = replace(OtherDip, is.na(OtherDip), 0L),
     
     # ── Employment / experience ───────────────────────────────────────────
     jbstat = str_trim(str_to_lower(jbstat)),
-    isWorking = case_when(
+    isWorkingFT = case_when(
       jbstat %in% c(
         "employed", "self-employed", "self employed",
         "paid employment(ft/pt)", "unpaid, family business",
@@ -79,9 +88,9 @@ usoc_clean <- usoc %>%
       jbstat %in% c("ft studt, school", "full-time student") ~ 1L,
       TRUE ~ 0L
     ),
-    expyrs  = cumsum(isWorking),
+    expyrs  = cumsum(isWorkingFT),
     expyrs2 = expyrs^2,
-    emp_lag = dplyr::lag(isWorking, n = 1),
+    emp_lag = dplyr::lag(isWorkingFT, n = 1),
     
     # ── Caring ────────────────────────────────────────────────────────────
     aidhh = str_trim(str_to_lower(aidhh)),
@@ -92,10 +101,10 @@ usoc_clean <- usoc %>%
     ),
     
     # ── Region (kept as character here; factor applied after ungroup) ─────
-    gor_dv = str_trim(str_to_lower(gor_dv)),
-    gor_dv = str_replace_all(gor_dv, " ", "."),
-    gor_dv = recode(
-      gor_dv,
+    region = str_trim(str_to_lower(gor_dv)),
+    region = str_replace_all(region, " ", "."),
+    region = recode(
+      region,
       "east.of.england"      = "east",
       "yorkshire.&.humber"   = "yorkshire.and.the.humber"
     ),
@@ -104,17 +113,27 @@ usoc_clean <- usoc %>%
     year16 = birth_year + 16, #Year at 16 years old
     year18 = birth_year + 18,
     year21 = birth_year + 21,
-    PGLoan2016  = as.integer(year >= 2016 & Bachelor == 1 & age < 60),
+    year22 = birth_year + 22,
+    PGLoan2016  = as.integer(year >= 2016 & age >= 22 & age < 60),
     home_bachfee = case_when( #Home bachelor tuition fee at 18 y/o
       (year18 < 1998) ~ 0,
       (year18 >= 1998 & year18 <= 2005) ~ 1000,
       (year18 >= 2006 & year18 <= 2011) ~ 3000,
       (year18 >= 2012 & year18 <= 2016) ~ 9000,
       (year18 >= 2017 & year18 <= 2024) ~ 9250,
-      (year18 >= 2017 & year18 <= 2024) ~ 9250,
       (year18 == 2025) ~ 9535,
-      (year18 == 2026) ~ 9795
     ),
+    
+    region18_raw = region[match(year18, year)],
+    region17_raw = region[match(year16 + 1, year)],
+    region16_raw = region[match(year16, year)],
+    region16 = coalesce(region16_raw, region17_raw, region18_raw),
+    region22_raw = region[match(year22, year)],
+    region21_raw = region[match(year21, year)],
+    region20_raw = region[match(year22 - 2, year)],
+    region19_raw = region[match(year22 - 3, year)],
+    region22 = coalesce(region22_raw, region21_raw, region20_raw, region19_raw),
+    region21 = coalesce(region21_raw, region20_raw, region19_raw, region22_raw),
     
     # ── Race group (kept as character here; factor applied after ungroup) ─
     # Race is often recorded once and left missing in other waves.
@@ -161,7 +180,11 @@ usoc_clean <- usoc %>%
     
     momeduc = str_trim(str_to_lower(momeduc)),
     momeduc = first(
-      momeduc[!is.na(momeduc) & !momeduc %in% c("missing", "proxy", "refusal","inapplicable")],
+      momeduc[!is.na(momeduc) & !momeduc %in% c("missing","proxy","refusal",
+                                                "inapplicable","don't know",
+                                                "only available for iemb",
+                                                "not available for iemb"
+      )],
       default = NA_character_
     ),
     momeduc = case_when(
@@ -199,11 +222,11 @@ usoc_clean <- usoc %>%
 
 # IMPORT EXTERNAL DATA AND MERGE WITH THE ORIGINAL DATASET
 ## Regional unemployment and unicount at 18
-regional_unemp <- read_excel("External Data/regional.xlsx", sheet = "unemp")
+regional_unemp <- read_excel("External Data/regional.xlsx", sheet = "unemp_devi")
 regional_unemp_long <- regional_unemp %>% #Regional unemployment rate
   pivot_longer(
     cols = -year,
-    names_to = "gor_dv",
+    names_to = "region",
     values_to = "reg_unemp"
   )
 
@@ -211,19 +234,29 @@ regional_unicount <- read_excel("External Data/regional.xlsx", sheet = "unicount
 regional_unicount_long <- regional_unicount %>%
   pivot_longer(
     cols = -year,
-    names_to = "gor_dv",
+    names_to = "region",
     values_to = "reg_unicount16"
   )
 
 CPI18 <- read_excel("External Data/regional.xlsx", sheet = "CPI18")
 
-usoc_df <- usoc_clean %>%
-  left_join(regional_unemp_long, by = c("year16" = "year", "gor_dv")) %>%
+usoc_working <- usoc_clean %>%
+  left_join(regional_unemp_long, by = c("year16" = "year", "region16" = "region")) %>%
   dplyr::rename(reg_unemp16 = reg_unemp) %>%
-  left_join(regional_unemp_long, by = c("year21" = "year", "gor_dv")) %>%
+  
+  left_join(regional_unemp_long, by = c("year21" = "year", "region21" = "region")) %>%
   dplyr::rename(reg_unemp21 = reg_unemp) %>%
-  left_join(regional_unicount_long, by = c("year16" = "year", "gor_dv")) %>%
-  left_join(CPI18, by = c("year18" = "year"))
+  
+  left_join(regional_unemp_long, by = c("year22" = "year", "region22" = "region")) %>%
+  dplyr::rename(reg_unemp22 = reg_unemp) %>%
+  
+  left_join(regional_unicount_long, by = c("year16" = "year", "region16" = "region")) %>%
+  
+  left_join(CPI18, by = c("year18" = "year"))%>%
+  dplyr::rename(CPI18 = CPI)  %>%
+
+  left_join(CPI18, by = c("year"))
+  
 
 ## Real minimum wage and CPI
 mw_cpi <- read_excel("External Data/mw_cpi.xlsx", sheet = "real_converted")
@@ -248,30 +281,30 @@ get_real_mw <- function(year, age) {
 }
 
 # Apply to usoc_clean
-usoc_df$realMW <- mapply(get_real_mw, usoc_clean$year, usoc_clean$age)
-usoc_df$CPI <- mw_cpi$CPI[match(usoc_clean$year, mw_cpi$year)]
-usoc_df$Kaitz <- mw_cpi$Kaitz[match(usoc_clean$year, mw_cpi$year)]
+usoc_working$realMW <- mapply(get_real_mw, usoc_clean$year, usoc_clean$age)
+usoc_working$Kaitz <- mw_cpi$Kaitz[match(usoc_clean$year, mw_cpi$year)]
 
 # FINAL DATASET
-usoc_df <- usoc_df %>%
+usoc_working <- usoc_working %>%
   mutate(
-    lwage = asinh(fimnlabgrs_dv/CPI*100),
+    lwage = log(fimnlabgrs_dv/CPI*100),
     real_hbachfee = (home_bachfee/CPI18*100),
   ) %>%
   dplyr::select(pidp, year, age, birth_year, lwage, hiqual, GCSE, ALevel, VOC, 
-                Bachelor, HigherDeg, OtherDip, expyrs, expyrs2, Kaitz, 
-                reg_unemp16, reg_unemp21, ability, emp_lag, reg_unicount16, real_hbachfee, home_bachfee, isWorking, 
-                numChild, isCare, numSib, PGLoan2016, race, sex, gor_dv, momeduc, FTStudying) %>%
+                Bachelor, HigherDeg, OtherDip, expyrs, expyrs2, Kaitz, reg_unemp16, 
+                reg_unemp21, reg_unemp22, ability, emp_lag, reg_unicount16, 
+                real_hbachfee, home_bachfee, numChild, isCare, numSib, 
+                PGLoan2016, race, sex, region, momeduc, isWorkingFT) %>%
 
 
   #England only because education policy instruments is different for these four
   #as well there's no data on higher education participation
-  filter(!gor_dv %in% c("scotland", "northern.ireland", "wales", "channel.islands")) %>%
+  filter(!region %in% c("scotland", "northern.ireland", "wales", "channel.islands")) %>%
   
-  #Have to put the mutate here because left_join forces gor_dv to be character
+  #Have to put the mutate here because left_join forces region to be character
   mutate(
-    gor_dv = factor(
-      gor_dv,
+    region = factor(
+      region,
       levels = c(
         "london", "east", "east.midlands", "north.east", "north.west", 
         "south.east", "south.west", "west.midlands","yorkshire.and.the.humber"
@@ -279,9 +312,9 @@ usoc_df <- usoc_df %>%
     )
   )
 
-usoc_working <- usoc_df %>%
+usoc_working <- usoc_working %>%
   ungroup() %>%
   arrange(pidp, year) %>%
   group_by(pidp) %>%
-  filter(min(age) <= 23, lwage > 0) %>%
+  filter(min(age) <= 23, isWorkingFT == 1, lwage > 0) %>%
   ungroup()

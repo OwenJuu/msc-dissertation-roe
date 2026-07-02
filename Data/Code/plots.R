@@ -14,28 +14,28 @@ mw_grid <- seq(min(usoc_working$Kaitz, na.rm = TRUE),
 bk  <- attr(bs(usoc_working$Kaitz, df = 4), "Boundary.knots")
 B   <- bs(mw_grid, df = 4, Boundary.knots = bk)  # 200 x 3 matrix
 
-# ── 3. Compute marginal return to ALevel at each MW point ────────────────────
-# Return = beta_ALevel + gamma1*b1(w) + gamma2*b2(w) + gamma3*b3(w)
+# ── 3. Compute marginal return to HigherDeg at each MW point ────────────────────
+# Return = beta_HigherDeg + gamma1*b1(w) + gamma2*b2(w) + gamma3*b3(w)
 
-beta_A  <- coefs["fit_ALevel"]
-gamma_A <- coefs[c("fit_ALevel:bs(Kaitz, 4)1",
-                   "fit_ALevel:bs(Kaitz, 4)2",
-                   "fit_ALevel:bs(Kaitz, 4)3",
-                   "fit_ALevel:bs(Kaitz, 4)4")]
+beta_A  <- coefs["fit_HigherDeg"]
+gamma_A <- coefs[c("fit_HigherDeg:bs(Kaitz, 4)1",
+                   "fit_HigherDeg:bs(Kaitz, 4)2",
+                   "fit_HigherDeg:bs(Kaitz, 4)3",
+                   "fit_HigherDeg:bs(Kaitz, 4)4")]
 
 # Marginal return vector (200 x 1)
 # Return(w) = beta_A + B %*% gamma_A
 returns <- beta_A + B %*% gamma_A
 
 # ── 4. Compute standard errors via delta method ───────────────────────────────
-# Return(w) = c(w)' theta, where c(w) = [0,...,1(ALevel),...,b1,b2,b3,...]
+# Return(w) = c(w)' theta, where c(w) = [0,...,1(HigherDeg),...,b1,b2,b3,...]
 # We need to extract the relevant rows/cols from vcov
 
-param_names <- c("fit_ALevel",
-                 "fit_ALevel:bs(Kaitz, 4)1",
-                 "fit_ALevel:bs(Kaitz, 4)2",
-                 "fit_ALevel:bs(Kaitz, 4)3",
-                 "fit_ALevel:bs(Kaitz, 4)4")
+param_names <- c("fit_HigherDeg",
+                 "fit_HigherDeg:bs(Kaitz, 4)1",
+                 "fit_HigherDeg:bs(Kaitz, 4)2",
+                 "fit_HigherDeg:bs(Kaitz, 4)3",
+                 "fit_HigherDeg:bs(Kaitz, 4)4")
 
 V_sub <- V[param_names, param_names]
 
@@ -55,21 +55,21 @@ plot_df <- tibble(
 )
 
 # ── 6. Plot ───────────────────────────────────────────────────────────────────
-ggplot(plot_df, aes(x = Kaitz, y = ret)) +
+ggplot(subset(plot_df, Kaitz > 0.5), aes(x = Kaitz, y = ret)) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
   geom_ribbon(aes(ymin = ci_low, ymax = ci_high),
               fill = "steelblue", alpha = 0.2) +
   geom_line(colour = "steelblue", linewidth = 1) +
   labs(
     x        = "Kaitz index",
-    y        = expression("Return coefficient of ALevel  " * (hat(beta)[A](w))),
+    y        = expression("Return coefficient of HigherDeg  " * (hat(beta)[A](w))),
     caption  = "Note: Shaded area shows 95% pointwise confidence band.\nEstimated via delta method on clustered standard errors."
   ) +
-  coord_cartesian(ylim = c(-5, 5)) +
   theme_bw(base_size = 13) +
   theme(
     plot.title    = element_text(face = "bold"),
     plot.subtitle = element_text(colour = "grey40"),
     plot.caption  = element_text(colour = "grey40", hjust = 0)
   )
+
 

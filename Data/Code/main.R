@@ -56,14 +56,15 @@ usoc <- usoc_compile(
 )
 
 #Removing everything except for the OG "usoc" dataset
-rm(list = setdiff(ls(), c("usoc"))) 
+rm(list = setdiff(ls(), c("usoc", "usoc_clean"))) 
 gc()
 
 # Clean data (run only when adding new variables to save compile time)
 source("Code/0_data_cleaning.R")
 
 #Removing everything except for the OG "usoc" dataset, and freeing some memory
-rm(list = setdiff(ls(), c("usoc","usoc_working", "mw_cpi", "regional_hep", "regional_unemp"))) 
+rm(list = setdiff(ls(), c("usoc","usoc_clean", "usoc_working", 
+                          "mw_cpi", "regional_hep", "regional_unemp"))) 
 gc()
 
 source("Code/1_sample_selection.R")
