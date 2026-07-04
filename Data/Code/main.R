@@ -46,6 +46,7 @@ custom_mappings <- function(cols) {
     "qfvoc10", "NVQ", "factor",
     "qfvoc12", "ONC", "factor",
     "qfvoc13", "BTEC", "factor",
+    "qfvoc14", "SCOTVEC", "factor",
   )
   return(custom_variables)
 }
