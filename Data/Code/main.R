@@ -1,24 +1,24 @@
 # Preample
-install.packages("devtools")
+install.packages("devtools", type = "win.binary")
 devtools::install_github("wklimowicz/tidyusoc")
-install.packages("tidyverse")
-install.packages("tsibble")
-install.packages("pandoc")
-install.packages("sampleSelection")
+devtools::install_github("yuchang0321/IVQR")
+
+#Install the following packages if missing:
+library(IVQR)
+library(readxl)
+library(patchwork)
 library(tidyverse)
 library(tidyusoc)
 library(dplyr)
 library(stringr)
 library(plm)
-library(stargazer)
-library(ivreg)       # FD-IV with diagnostics
+library(gtsummary)
 library(fixest)      # TWFE / Sun & Abraham
-library(did)         # Callaway & Sant'Anna
 library(modelsummary)
 library(tsibble)
-library(pandoc)
-library(sampleSelection)
-setwd("C:/Users/tp01040/Downloads/msc-dissertation-roe/Data/")
+library(splines)
+library(MASS)
+setwd("C:/Users/tp01040/Downloads/msc-dissertation-roe/Data")
 
 # Compile raw data (run only once)
 usoc_convert(
@@ -27,6 +27,7 @@ usoc_convert(
   filter_files = "indresp",
 )
 
+# Compile merged data
 rm(list = ls())
 
 custom_mappings <- function(cols) {
@@ -34,7 +35,17 @@ custom_mappings <- function(cols) {
   custom_variables <- tibble::tribble(
     ~usoc_name, ~new_name, ~type,
     "nchild_dv", "numChild", "numeric",
-    "aidhh", "aidhh", "factor"
+    "aidhh", "aidhh", "factor",
+    "sex", "sex", "factor",
+    "qfhigh_dv", "qfhigh_dv", "factor",
+    "birthy", "birth_year", "numeric",
+    "maedqf", "momeduc", "factor",
+    "cgwrd_dv", "ability", "factor",
+    "nnsib_dv", "numSib", "factor",
+    "qfvoc5", "appr", "factor",
+    "qfvoc10", "NVQ", "factor",
+    "qfvoc12", "ONC", "factor",
+    "qfvoc13", "BTEC", "factor",
   )
   return(custom_variables)
 }
@@ -44,10 +55,26 @@ usoc <- usoc_compile(
   extra_mappings = custom_mappings
 )
 
-# Clean data
-source("Code/data_cleaning.R")
+#Removing everything except for the OG "usoc" dataset
+rm(list = setdiff(ls(), c("usoc", "usoc_clean"))) 
+gc()
 
-# Run model and export model summary
-source("Code/models.R")
+# Clean data (run only when adding new variables to save compile time)
+source("Code/0_data_cleaning.R")
 
+#Removing everything except for the OG "usoc" dataset, and freeing some memory
+rm(list = setdiff(ls(), c("usoc","usoc_clean", "usoc_working", 
+                          "mw_cpi", "regional_hep", "regional_unemp"))) 
+gc()
+
+source("Code/1_sample_selection.R")
+source("Code/2_simple_model.R")
+
+##Exporting model's result
+etable(
+  simple_linear, iv_panel
+  #tex = TRUE,
+  #file = "results.tex"
+)
+source("Code/plots.R")
 
