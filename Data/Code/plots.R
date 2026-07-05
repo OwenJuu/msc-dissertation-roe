@@ -11,43 +11,34 @@ mw_grid <- seq(min(usoc_working$Kaitz, na.rm = TRUE),
                length.out = 200)
 
 # Recompute spline basis on the grid using SAME boundary knots as estimation
-bk  <- attr(bs(usoc_working$Kaitz, df = 4), "Boundary.knots")
-B   <- bs(mw_grid, df = 4, Boundary.knots = bk)  # 200 x 3 matrix
+bk <- attr(bs(usoc_working$Kaitz, df = 4), "Boundary.knots")
+B  <- bs(mw_grid, df = 4, Boundary.knots = bk)  # 200 x 4 matrix
 
-# ── 3. Compute marginal return to HigherDeg at each MW point ────────────────────
-# Return = beta_HigherDeg + gamma1*b1(w) + gamma2*b2(w) + gamma3*b3(w)
-
-beta_A  <- coefs["fit_HigherDeg"]
-gamma_A <- coefs[c("fit_HigherDeg:bs(Kaitz, 4)1",
-                   "fit_HigherDeg:bs(Kaitz, 4)2",
-                   "fit_HigherDeg:bs(Kaitz, 4)3",
-                   "fit_HigherDeg:bs(Kaitz, 4)4")]
+# ── 3. Compute marginal return to Bachelor at each Kaitz point ──────────────
+# No standalone Bachelor term in this model -- the return IS the spline fit:
+# Return(w) = gamma1*b1(w) + gamma2*b2(w) + gamma3*b3(w) + gamma4*b4(w)
+param_names <- c("fit_bs(Kaitz, 4):Bachelor1",
+                 "fit_bs(Kaitz, 4):Bachelor2",
+                 "fit_bs(Kaitz, 4):Bachelor3",
+                 "fit_bs(Kaitz, 4):Bachelor4")
+gamma_A <- coefs[param_names]
 
 # Marginal return vector (200 x 1)
-# Return(w) = beta_A + B %*% gamma_A
-returns <- beta_A + B %*% gamma_A
+returns <- B %*% gamma_A
 
-# ── 4. Compute standard errors via delta method ───────────────────────────────
-# Return(w) = c(w)' theta, where c(w) = [0,...,1(HigherDeg),...,b1,b2,b3,...]
-# We need to extract the relevant rows/cols from vcov
-
-param_names <- c("fit_HigherDeg",
-                 "fit_HigherDeg:bs(Kaitz, 4)1",
-                 "fit_HigherDeg:bs(Kaitz, 4)2",
-                 "fit_HigherDeg:bs(Kaitz, 4)3",
-                 "fit_HigherDeg:bs(Kaitz, 4)4")
-
+# ── 4. Compute standard errors via delta method ──────────────────────────────
+# Return(w) = c(w)' theta, where c(w) = [b1(w), b2(w), b3(w), b4(w)] -- no
+# leading 1, since there's no standalone Bachelor coefficient to add.
 V_sub <- V[param_names, param_names]
 
-# For each MW point, gradient vector c(w) = [1, b1(w), b2(w), b3(w)]
 se_returns <- sapply(1:nrow(B), function(i) {
-  c_w <- c(1, B[i, ])                  # 4 x 1 gradient
+  c_w <- B[i, ]                        # 4 x 1 gradient (NOT c(1, B[i,]))
   sqrt(as.numeric(t(c_w) %*% V_sub %*% c_w))
 })
 
 # ── 5. Assemble plot dataframe ────────────────────────────────────────────────
 plot_df <- tibble(
-  Kaitz  = mw_grid,
+  Kaitz   = mw_grid,
   ret     = as.numeric(returns),
   se      = se_returns,
   ci_low  = ret - 1.96 * se,
@@ -61,9 +52,9 @@ ggplot(subset(plot_df, Kaitz > 0.5), aes(x = Kaitz, y = ret)) +
               fill = "steelblue", alpha = 0.2) +
   geom_line(colour = "steelblue", linewidth = 1) +
   labs(
-    x        = "Kaitz index",
-    y        = expression("Return coefficient of HigherDeg  " * (hat(beta)[A](w))),
-    caption  = "Note: Shaded area shows 95% pointwise confidence band.\nEstimated via delta method on clustered standard errors."
+    x       = "Kaitz index",
+    y       = expression("Return coefficient of Bachelor  " * (hat(beta)[A](w))),
+    caption = "Note: Shaded area shows 95% pointwise confidence band.\nEstimated via delta method on clustered standard errors."
   ) +
   theme_bw(base_size = 13) +
   theme(
@@ -71,5 +62,3 @@ ggplot(subset(plot_df, Kaitz > 0.5), aes(x = Kaitz, y = ret)) +
     plot.subtitle = element_text(colour = "grey40"),
     plot.caption  = element_text(colour = "grey40", hjust = 0)
   )
-
-

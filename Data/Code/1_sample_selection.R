@@ -7,11 +7,25 @@ runemp_raw <- read_excel("External Data/regional.xlsx", sheet = "unemp") %>%
     values_to = "runemp_raw"
   )
 
+runemp_devi <- read_excel("External Data/regional.xlsx", sheet = "unemp_devi") %>%
+  pivot_longer(
+    cols = -year,
+    names_to = "region",
+    values_to = "runemp_devi"
+  )
+
 rearn_raw <- read_excel("External Data/regional.xlsx", sheet = "earn") %>%
   pivot_longer(
     cols = -year,
     names_to = "region",
     values_to = "rearn_raw"
+  )
+
+rearn_devi <- read_excel("External Data/regional.xlsx", sheet = "earn_devi") %>%
+  pivot_longer(
+    cols = -year,
+    names_to = "region",
+    values_to = "rearn_devi"
   )
 
 runemp_avg <- read_excel("External Data/regional.xlsx", sheet = "unemp_avg")
@@ -24,21 +38,12 @@ rhome_bachfee <- read_excel("External Data/regional.xlsx", sheet = "home_bachfee
     values_to = "rhome_bachfee"
   )
 
-runemp_devi <- read_excel("External Data/regional.xlsx", sheet = "unemp_devi") %>%
-  pivot_longer(
-    cols = -year,
-    names_to = "region",
-    values_to = "runemp_devi"
-  )
-
-runicount <- read_excel("External Data/regional.xlsx", sheet = "unicount") %>%
+runicount <- read_excel("External Data/regional.xlsx", sheet = "uniperpop") %>%
   pivot_longer(
     cols = -year,
     names_to = "region",
     values_to = "runicount"
   )
-
-rearn <-
 
 CPI <- read_excel("External Data/regional.xlsx", sheet = "CPI")
 
@@ -66,6 +71,30 @@ usoc_working <- usoc_clean %>%
   # Instrument: Raw regional median log earning at 22
   left_join(rearn_raw, by = c("year22" = "year", "region22" = "region")) %>%
   dplyr::rename(rearn22_raw = rearn_raw) %>%
+  
+  # Instrument: Deviation regional unemployment at 16
+  left_join(runemp_devi, by = c("year16" = "year", "region16" = "region")) %>%
+  dplyr::rename(runemp16_devi = runemp_devi) %>%
+  
+  # Instrument: Deviation regional unemployment at 18
+  left_join(runemp_devi, by = c("year18" = "year", "region18" = "region")) %>%
+  dplyr::rename(runemp18_devi = runemp_devi) %>%
+  
+  # Instrument: Deviation regional unemployment at 22
+  left_join(runemp_devi, by = c("year22" = "year", "region22" = "region")) %>%
+  dplyr::rename(runemp22_devi = runemp_devi) %>%
+  
+  # Instrument: Deviation regional median log earning at 16
+  left_join(rearn_devi, by = c("year16" = "year", "region16" = "region")) %>%
+  dplyr::rename(rearn16_devi = rearn_devi) %>%
+  
+  # Instrument: Deviation regional median log earning at 18
+  left_join(rearn_devi, by = c("year18" = "year", "region18" = "region")) %>%
+  dplyr::rename(rearn18_devi = rearn_devi) %>%
+  
+  # Instrument: Deviation regional median log earning at 22
+  left_join(rearn_devi, by = c("year22" = "year", "region22" = "region")) %>%
+  dplyr::rename(rearn22_devi = rearn_devi) %>%
   
   # Control: Average unemployment rate at region of origin (year 16)
   left_join(runemp_avg, by = c("region16" = "region")) %>%
@@ -122,7 +151,7 @@ get_real_mw <- function(year, age) {
 
 # Apply to usoc_clean
 usoc_working$realMW <- mapply(get_real_mw, usoc_working$year, usoc_working$age)
-usoc_working$Kaitz <- mw_cpi$Kaitz[match(usoc_working$year, usoc_working$year)]
+usoc_working$Kaitz <- mw_cpi$Kaitz[match(usoc_working$year, mw_cpi$year)]
 
 
 # FINAL DATASET
@@ -135,8 +164,10 @@ usoc_working <- usoc_working %>%
 usoc_working <- usoc_working %>%
   dplyr::select(pidp, year, age, birth_year, region, region16, region18, region22,
                 year16, year18, year22, runicount16, runemp16_raw, runemp18_raw, 
-                runemp22_raw, runemp_current, rearn16_raw, rearn18_raw, 
-                rearn22_raw, rearn_current, runemp16_avg, rearn16_avg, lwage, 
+                runemp22_raw, runemp16_devi, runemp18_devi, runemp22_devi, 
+                runemp_current, rearn16_raw, rearn18_raw, rearn22_raw, 
+                rearn16_devi, rearn18_devi, rearn22_devi, 
+                rearn_current, runemp16_avg, rearn16_avg, lwage, 
                 hiqual, GCSE, ALevel, VOC, Bachelor, HigherDeg, OtherDip, expyrs, 
                 expyrs2, Kaitz, ability, real_hbachfee, home_bachfee, numSib, 
                 PGLoan2016, race, sex, momeduc, isWorkingFT) %>%

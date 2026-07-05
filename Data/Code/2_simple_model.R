@@ -23,72 +23,27 @@ simple_linear <- feols(
 )
 summary(simple_linear)
 
-## BEST FOR DEVI UNEMP
-iv_panel <- feols(lwage ~ sex + race | region |
+## BEST MODEL OVERALL
+iv_panel <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current |
                     ALevel + VOC + Bachelor + HigherDeg + expyrs + expyrs2
-                  ~ PGLoan2016*runemp22_devi + real_hbachfee*runemp16_devi
-                  + numSib, 
+                  ~ runemp16_devi + runemp18_devi + runemp22_devi 
+                  + rearn16_devi + rearn18_devi + rearn22_devi + 
+                    real_hbachfee + runicount16 + PGLoan2016, 
                   data = usoc_working,
                   cluster = ~pidp)
 summary(iv_panel, stage = 1:2)
 
-## BEST MODEL FOR RAW RUNEMP
-iv_panel <- feols(lwage ~ sex + race + region16| region + year |
-                    ALevel + VOC + Bachelor + HigherDeg + expyrs + expyrs2
-                  ~ PGLoan2016 + runemp22_raw + real_hbachfee + runemp16_raw 
-                  * log(runicount16) + numSib, 
-                  data = usoc_working,
+post1999 <- usoc_working %>%
+  filter(year >= 1999)
+
+model_np <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current 
+                   |
+                    ALevel:bs(Kaitz, 4) + VOC:bs(Kaitz, 4) + Bachelor:bs(Kaitz, 4) + HigherDeg:bs(Kaitz, 4) +
+                    expyrs:bs(Kaitz, 4) + expyrs2:bs(Kaitz, 4) 
+                  ~ 
+                    runemp16_devi:bs(Kaitz, 4) + runemp18_devi:bs(Kaitz, 4) + runemp22_devi:bs(Kaitz, 4) +
+                    rearn16_devi:bs(Kaitz, 4) + rearn18_devi:bs(Kaitz, 4) + rearn22_devi:bs(Kaitz, 4) +
+                    real_hbachfee:bs(Kaitz, 4) + runicount16:bs(Kaitz, 4) + PGLoan2016:bs(Kaitz, 4),  
+                  data    = post1999,
                   cluster = ~pidp)
-summary(iv_panel, stage = 1:2)
-
-
-## BEST IMPROVED MODEL FOR DEVI UNEMP (REJECT SARGAN)
-iv_panel <- feols(lwage ~ sex + race + runemp_current| 
-                    ALevel + VOC + Bachelor + HigherDeg + expyrs + expyrs2
-                  ~ PGLoan2016 + runemp22_devi + real_hbachfee + runemp16_devi 
-                  * runicount16 + numSib, 
-                  data = usoc_working,
-                  cluster = ~pidp)
-summary(iv_panel, stage = 1:2)
-
-## Heckman model
-iv_panel <- feols(lwage ~ sex + race + runemp_current + rearn_current 
-                  + runemp16_avg + rearn16_avg + numSib + momeduc + factor(birth_year)| 
-                    ALevel + VOC + Bachelor + HigherDeg + expyrs + expyrs2
-                  ~ runemp16_raw + runemp18_raw + runemp22_raw + 
-                    rearn16_raw + rearn18_raw + rearn22_raw + real_hbachfee + runicount16
-                  + PGLoan2016, 
-                  data = usoc_working,
-                  cluster = ~pidp)
-summary(iv_panel, stage = 1:2)
-
-## test new model here
-iv_panel <- feols(lwage ~ sex + race + runemp_current + runemp16_avg + factor(birth_year)| 
-                    ALevel + VOC + Bachelor + HigherDeg + expyrs + expyrs2
-                  ~ PGLoan2016 + runemp22_raw + real_hbachfee + runemp16_raw 
-                  + runicount16 + numSib, 
-                  data = usoc_working,
-                  cluster = ~pidp)
-summary(iv_panel, stage = 1:2)
-
-# Reduced form sanity check
-sanity <- feols(lwage ~ region16 + year + PGLoan2016 + runemp22_devi + real_hbachfee + 
-                  runemp16_devi + runicount16 + numSib, 
-                data = usoc_working,
-                cluster = ~pidp)
-summary(sanity, stage = 2)
-
-
-
-# Kaitz interaction term
-model_np <- feols(lwage ~ sex + race + bs(Kaitz, 4)| region | 
-                ALevel + VOC + Bachelor + HigherDeg + expyrs + expyrs2
-              + ALevel:bs(Kaitz, 4) + VOC:bs(Kaitz, 4) + Bachelor:bs(Kaitz, 4) 
-              + HigherDeg:bs(Kaitz, 4)
-              ~ PGLoan2016*reg_unemp22 + real_hbachfee*reg_unemp16 + numSib +  
-              + PGLoan2016:bs(Kaitz, 4) + reg_unemp22:bs(Kaitz, 4) + PGLoan2016:reg_unemp22:bs(Kaitz, 4)
-              + reg_unemp16:bs(Kaitz, 4) + real_hbachfee:bs(Kaitz, 4) + real_hbachfee:reg_unemp16:bs(Kaitz, 4) 
-              + numSib:bs(Kaitz, 4), 
-              data    = usoc_working,
-              cluster = ~pidp)
 summary(model_np)
