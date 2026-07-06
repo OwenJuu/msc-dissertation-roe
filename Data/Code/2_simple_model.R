@@ -9,7 +9,7 @@ usoc_working_complete <- usoc_working[complete.cases(usoc_working[, vars]), ]
 simple_linear <- feols(
   lwage ~  ALevel + VOC + Bachelor + HigherDeg + expyrs 
   + expyrs2 + sex + race | region + year + factor(birth_year),                           
-  data    = usoc_working,
+  data    = usoc_working_complete,
   cluster = ~pidp
 )
 summary(simple_linear)
