@@ -158,7 +158,7 @@ usoc_working$Kaitz <- mw_cpi$Kaitz[match(usoc_working$year, mw_cpi$year)]
 usoc_working <- usoc_working %>%
   mutate(
     lwage = log(fimnlabgrs_dv/CPI*100),
-    real_hbachfee = (home_bachfee/CPI18*100),
+    hbachfee18_real = (home_bachfee/CPI18*100),
   ) 
 
 usoc_working <- usoc_working %>%
@@ -169,7 +169,7 @@ usoc_working <- usoc_working %>%
                 rearn16_devi, rearn18_devi, rearn22_devi, 
                 rearn_current, runemp16_avg, rearn16_avg, lwage, 
                 hiqual, GCSE, ALevel, VOC, Bachelor, HigherDeg, OtherDip, expyrs, 
-                expyrs2, Kaitz, ability, real_hbachfee, home_bachfee, numSib, 
+                expyrs2, Kaitz, ability, hbachfee18_real, home_bachfee, numSib, 
                 PGLoan2016, race, sex, momeduc, isWorkingFT) %>%
   
   
