@@ -1,7 +1,6 @@
 # Preample
 install.packages("devtools", type = "win.binary")
 devtools::install_github("wklimowicz/tidyusoc")
-devtools::install_github("yuchang0321/IVQR")
 
 #Install the following packages if missing:
 library(IVQR)
@@ -70,12 +69,5 @@ gc()
 
 source("Code/1_sample_selection.R")
 source("Code/2_simple_model.R")
-
-##Exporting model's result
-etable(
-  simple_linear, iv_panel
-  #tex = TRUE,
-  #file = "results.tex"
-)
 source("Code/plots.R")
 

@@ -11,16 +11,16 @@ mw_grid <- seq(min(usoc_working$Kaitz, na.rm = TRUE),
                length.out = 200)
 
 # Recompute spline basis on the grid using SAME boundary knots as estimation
-bk <- attr(bs(usoc_working$Kaitz, df = 4), "Boundary.knots")
+bk <- attr(bs(post1999$Kaitz, df = 4), "Boundary.knots")
 B  <- bs(mw_grid, df = 4, Boundary.knots = bk)  # 200 x 4 matrix
 
-# ── 3. Compute marginal return to Bachelor at each Kaitz point ──────────────
-# No standalone Bachelor term in this model -- the return IS the spline fit:
+# ── 3. Compute marginal return to HigherDeg at each Kaitz point ──────────────
+# No standalone HigherDeg term in this model -- the return IS the spline fit:
 # Return(w) = gamma1*b1(w) + gamma2*b2(w) + gamma3*b3(w) + gamma4*b4(w)
-param_names <- c("fit_bs(Kaitz, 4):Bachelor1",
-                 "fit_bs(Kaitz, 4):Bachelor2",
-                 "fit_bs(Kaitz, 4):Bachelor3",
-                 "fit_bs(Kaitz, 4):Bachelor4")
+param_names <- c("fit_bs(Kaitz, 4):HigherDeg1",
+                 "fit_bs(Kaitz, 4):HigherDeg2",
+                 "fit_bs(Kaitz, 4):HigherDeg3",
+                 "fit_bs(Kaitz, 4):HigherDeg4")
 gamma_A <- coefs[param_names]
 
 # Marginal return vector (200 x 1)
@@ -28,7 +28,7 @@ returns <- B %*% gamma_A
 
 # ── 4. Compute standard errors via delta method ──────────────────────────────
 # Return(w) = c(w)' theta, where c(w) = [b1(w), b2(w), b3(w), b4(w)] -- no
-# leading 1, since there's no standalone Bachelor coefficient to add.
+# leading 1, since there's no standalone HigherDeg coefficient to add.
 V_sub <- V[param_names, param_names]
 
 se_returns <- sapply(1:nrow(B), function(i) {
@@ -53,8 +53,7 @@ ggplot(subset(plot_df, Kaitz > 0.5), aes(x = Kaitz, y = ret)) +
   geom_line(colour = "steelblue", linewidth = 1) +
   labs(
     x       = "Kaitz index",
-    y       = expression("Return coefficient of Bachelor  " * (hat(beta)[A](w))),
-    caption = "Note: Shaded area shows 95% pointwise confidence band.\nEstimated via delta method on clustered standard errors."
+    y       = expression("Return coefficient"),
   ) +
   theme_bw(base_size = 13) +
   theme(
