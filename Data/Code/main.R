@@ -3,7 +3,6 @@ install.packages("devtools", type = "win.binary")
 devtools::install_github("wklimowicz/tidyusoc")
 
 #Install the following packages if missing:
-library(IVQR)
 library(readxl)
 library(patchwork)
 library(tidyverse)
@@ -11,13 +10,13 @@ library(tidyusoc)
 library(dplyr)
 library(stringr)
 library(plm)
-library(gtsummary)
 library(fixest)      # TWFE / Sun & Abraham
-library(modelsummary)
 library(tsibble)
 library(splines)
 library(MASS)
-setwd("C:/Users/tp01040/Downloads/msc-dissertation-roe/Data")
+
+#Change this to the Data folder's directory C:/.../Data
+setwd("C:/Users/thuan/Downloads/msc-dissertation-roe/Data")
 
 # Compile raw data (run only once)
 usoc_convert(

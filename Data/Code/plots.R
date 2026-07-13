@@ -1,42 +1,37 @@
-library(tidyverse)
-library(splines)
-
-# ── 1. Extract coefficients and vcov ─────────────────────────────────────────
+# ── 1. Plot ver 1 ─────────────────────────────────────────────────────
 coefs <- coef(model_np)
 V     <- vcov(model_np, attr = FALSE)
-
-# ── 2. Define Kaitz grid ─────────────────────────────────────────────────────
 mw_grid <- seq(min(usoc_working$Kaitz, na.rm = TRUE),
                max(usoc_working$Kaitz, na.rm = TRUE),
                length.out = 200)
-
 # Recompute spline basis on the grid using SAME boundary knots as estimation
+# FIX: df = 3, not 4 (model_np only has bs(Kaitz, 3)1/2/3)
 bk <- attr(bs(post1999$Kaitz, df = 4), "Boundary.knots")
-B  <- bs(mw_grid, df = 4, Boundary.knots = bk)  # 200 x 4 matrix
+B  <- bs(mw_grid, df = 4, Boundary.knots = bk)  # 200 x 3 matrix
 
-# ── 3. Compute marginal return to HigherDeg at each Kaitz point ──────────────
-# No standalone HigherDeg term in this model -- the return IS the spline fit:
-# Return(w) = gamma1*b1(w) + gamma2*b2(w) + gamma3*b3(w) + gamma4*b4(w)
-param_names <- c("fit_bs(Kaitz, 4):HigherDeg1",
-                 "fit_bs(Kaitz, 4):HigherDeg2",
-                 "fit_bs(Kaitz, 4):HigherDeg3",
-                 "fit_bs(Kaitz, 4):HigherDeg4")
-gamma_A <- coefs[param_names]
+# FIX: model_np DOES have a standalone HigherDeg term (fit_HigherDeg = -25.91),
+# so the return is beta_HigherDeg + gamma' * b(w), not just gamma' * b(w)
+param_names <- c("fit_HigherDeg",
+                 "fit_HigherDeg:bs(Kaitz, 4)1",
+                 "fit_HigherDeg:bs(Kaitz, 4)2",
+                 "fit_HigherDeg:bs(Kaitz, 4)3",
+                 "fit_HigherDeg:bs(Kaitz, 4)4")
+theta_A <- coefs[param_names]
+
+# FIX: gradient vector needs a leading 1 to multiply against fit_HigherDeg
+C <- cbind(1, B)   # 200 x 4
 
 # Marginal return vector (200 x 1)
-returns <- B %*% gamma_A
+returns <- C %*% theta_A
 
-# ── 4. Compute standard errors via delta method ──────────────────────────────
-# Return(w) = c(w)' theta, where c(w) = [b1(w), b2(w), b3(w), b4(w)] -- no
-# leading 1, since there's no standalone HigherDeg coefficient to add.
-V_sub <- V[param_names, param_names]
-
-se_returns <- sapply(1:nrow(B), function(i) {
-  c_w <- B[i, ]                        # 4 x 1 gradient (NOT c(1, B[i,]))
+# Return(w) = c(w)' theta, where c(w) = [1, b1(w), b2(w), b3(w)]
+# leading 1 restored to pick up the base HigherDeg coefficient
+V_sub <- V[param_names, param_names]   # now 4x4, includes base term's variance
+se_returns <- sapply(1:nrow(C), function(i) {
+  c_w <- C[i, ]                        # 4 x 1 gradient: c(1, B[i,])
   sqrt(as.numeric(t(c_w) %*% V_sub %*% c_w))
 })
 
-# ── 5. Assemble plot dataframe ────────────────────────────────────────────────
 plot_df <- tibble(
   Kaitz   = mw_grid,
   ret     = as.numeric(returns),
@@ -45,7 +40,6 @@ plot_df <- tibble(
   ci_high = ret + 1.96 * se
 )
 
-# ── 6. Plot ───────────────────────────────────────────────────────────────────
 ggplot(subset(plot_df, Kaitz > 0.5), aes(x = Kaitz, y = ret)) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "grey50") +
   geom_ribbon(aes(ymin = ci_low, ymax = ci_high),
