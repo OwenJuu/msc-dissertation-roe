@@ -14,6 +14,7 @@ library(fixest)      # TWFE / Sun & Abraham
 library(tsibble)
 library(splines)
 library(MASS)
+library(OneSampleMR)
 
 #Change this to the Data folder's directory C:/.../Data
 setwd("C:/Users/thuan/Downloads/msc-dissertation-roe/Data")

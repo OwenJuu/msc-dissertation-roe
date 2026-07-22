@@ -104,12 +104,13 @@ write.csv(
 )
 
 education_summary <- data.frame(
-  Education = c("ALevel", "VOC", "Bachelor", "HigherDeg", "expyrs", "runemp16_devi",
+  Education = c("lwage", "ALevel", "VOC", "Bachelor", "HigherDeg", "expyrs", "runemp16_devi",
                 "runemp18_devi", "runemp22_devi", "rearn16_devi", "rearn18_devi",
                 "rearn22_devi", "hbachfee18_real", "runicount16", "PGLoan2016",
-                "runemp_current", "rearn_current"),
+                "GCSE", "runemp_current", "rearn_current"),
   
   All = c(
+    mean(usoc_working_complete$lwage, na.rm = TRUE),
     mean(usoc_working_complete$ALevel, na.rm = TRUE),
     mean(usoc_working_complete$VOC, na.rm = TRUE),
     mean(usoc_working_complete$Bachelor, na.rm = TRUE),
@@ -124,11 +125,13 @@ education_summary <- data.frame(
     mean(usoc_working_complete$hbachfee18_real, na.rm = TRUE),
     mean(usoc_working_complete$runicount16, na.rm = TRUE),
     mean(usoc_working_complete$PGLoan2016, na.rm = TRUE),
+    mean(usoc_working_complete$GCSE, na.rm = TRUE),
     mean(usoc_working_complete$runemp_current, na.rm = TRUE),
     mean(usoc_working_complete$rearn_current, na.rm = TRUE)
   ),
   
   male = c(
+    mean(usoc_working_complete$lwage[usoc_working_complete$sex == "male"], na.rm = TRUE),
     mean(usoc_working_complete$ALevel[usoc_working_complete$sex == "male"], na.rm = TRUE),
     mean(usoc_working_complete$VOC[usoc_working_complete$sex == "male"], na.rm = TRUE),
     mean(usoc_working_complete$Bachelor[usoc_working_complete$sex == "male"], na.rm = TRUE),
@@ -143,11 +146,13 @@ education_summary <- data.frame(
     mean(usoc_working_complete$hbachfee18_real[usoc_working_complete$sex == "male"], na.rm = TRUE),
     mean(usoc_working_complete$runicount16[usoc_working_complete$sex == "male"], na.rm = TRUE),
     mean(usoc_working_complete$PGLoan2016[usoc_working_complete$sex == "male"], na.rm = TRUE),
+    mean(usoc_working_complete$GCSE[usoc_working_complete$sex == "male"], na.rm = TRUE),
     mean(usoc_working_complete$runemp_current[usoc_working_complete$sex == "male"], na.rm = TRUE),
     mean(usoc_working_complete$rearn_current[usoc_working_complete$sex == "male"], na.rm = TRUE)
   ),
   
   female = c(
+    mean(usoc_working_complete$lwage[usoc_working_complete$sex == "female"], na.rm = TRUE),
     mean(usoc_working_complete$ALevel[usoc_working_complete$sex == "female"], na.rm = TRUE),
     mean(usoc_working_complete$VOC[usoc_working_complete$sex == "female"], na.rm = TRUE),
     mean(usoc_working_complete$Bachelor[usoc_working_complete$sex == "female"], na.rm = TRUE),
@@ -162,11 +167,13 @@ education_summary <- data.frame(
     mean(usoc_working_complete$hbachfee18_real[usoc_working_complete$sex == "female"], na.rm = TRUE),
     mean(usoc_working_complete$runicount16[usoc_working_complete$sex == "female"], na.rm = TRUE),
     mean(usoc_working_complete$PGLoan2016[usoc_working_complete$sex == "female"], na.rm = TRUE),
+    mean(usoc_working_complete$GCSE[usoc_working_complete$sex == "female"], na.rm = TRUE),
     mean(usoc_working_complete$runemp_current[usoc_working_complete$sex == "female"], na.rm = TRUE),
     mean(usoc_working_complete$rearn_current[usoc_working_complete$sex == "female"], na.rm = TRUE)
   ),
   
   White = c(
+    mean(usoc_working_complete$lwage[usoc_working_complete$race == "White"], na.rm = TRUE),
     mean(usoc_working_complete$ALevel[usoc_working_complete$race == "White"], na.rm = TRUE),
     mean(usoc_working_complete$VOC[usoc_working_complete$race == "White"], na.rm = TRUE),
     mean(usoc_working_complete$Bachelor[usoc_working_complete$race == "White"], na.rm = TRUE),
@@ -181,11 +188,13 @@ education_summary <- data.frame(
     mean(usoc_working_complete$hbachfee18_real[usoc_working_complete$race == "White"], na.rm = TRUE),
     mean(usoc_working_complete$runicount16[usoc_working_complete$race == "White"], na.rm = TRUE),
     mean(usoc_working_complete$PGLoan2016[usoc_working_complete$race == "White"], na.rm = TRUE),
+    mean(usoc_working_complete$GCSE[usoc_working_complete$race == "White"], na.rm = TRUE),
     mean(usoc_working_complete$runemp_current[usoc_working_complete$race == "White"], na.rm = TRUE),
     mean(usoc_working_complete$rearn_current[usoc_working_complete$race == "White"], na.rm = TRUE)
   ),
   
   Black = c(
+    mean(usoc_working_complete$lwage[usoc_working_complete$race == "Black"], na.rm = TRUE),
     mean(usoc_working_complete$ALevel[usoc_working_complete$race == "Black"], na.rm = TRUE),
     mean(usoc_working_complete$VOC[usoc_working_complete$race == "Black"], na.rm = TRUE),
     mean(usoc_working_complete$Bachelor[usoc_working_complete$race == "Black"], na.rm = TRUE),
@@ -200,11 +209,13 @@ education_summary <- data.frame(
     mean(usoc_working_complete$hbachfee18_real[usoc_working_complete$race == "Black"], na.rm = TRUE),
     mean(usoc_working_complete$runicount16[usoc_working_complete$race == "Black"], na.rm = TRUE),
     mean(usoc_working_complete$PGLoan2016[usoc_working_complete$race == "Black"], na.rm = TRUE),
+    mean(usoc_working_complete$GCSE[usoc_working_complete$race == "Black"], na.rm = TRUE),
     mean(usoc_working_complete$runemp_current[usoc_working_complete$race == "Black"], na.rm = TRUE),
     mean(usoc_working_complete$rearn_current[usoc_working_complete$race == "Black"], na.rm = TRUE)
   ),
   
   Asian = c(
+    mean(usoc_working_complete$lwage[usoc_working_complete$race == "Asian"], na.rm = TRUE),
     mean(usoc_working_complete$ALevel[usoc_working_complete$race == "Asian"], na.rm = TRUE),
     mean(usoc_working_complete$VOC[usoc_working_complete$race == "Asian"], na.rm = TRUE),
     mean(usoc_working_complete$Bachelor[usoc_working_complete$race == "Asian"], na.rm = TRUE),
@@ -219,11 +230,13 @@ education_summary <- data.frame(
     mean(usoc_working_complete$hbachfee18_real[usoc_working_complete$race == "Asian"], na.rm = TRUE),
     mean(usoc_working_complete$runicount16[usoc_working_complete$race == "Asian"], na.rm = TRUE),
     mean(usoc_working_complete$PGLoan2016[usoc_working_complete$race == "Asian"], na.rm = TRUE),
+    mean(usoc_working_complete$GCSE[usoc_working_complete$race == "Asian"], na.rm = TRUE),
     mean(usoc_working_complete$runemp_current[usoc_working_complete$race == "Asian"], na.rm = TRUE),
     mean(usoc_working_complete$rearn_current[usoc_working_complete$race == "Asian"], na.rm = TRUE)
   ),
   
   Mixed = c(
+    mean(usoc_working_complete$lwage[usoc_working_complete$race == "Mixed"], na.rm = TRUE),
     mean(usoc_working_complete$ALevel[usoc_working_complete$race == "Mixed"], na.rm = TRUE),
     mean(usoc_working_complete$VOC[usoc_working_complete$race == "Mixed"], na.rm = TRUE),
     mean(usoc_working_complete$Bachelor[usoc_working_complete$race == "Mixed"], na.rm = TRUE),
@@ -238,6 +251,7 @@ education_summary <- data.frame(
     mean(usoc_working_complete$hbachfee18_real[usoc_working_complete$race == "Mixed"], na.rm = TRUE),
     mean(usoc_working_complete$runicount16[usoc_working_complete$race == "Mixed"], na.rm = TRUE),
     mean(usoc_working_complete$PGLoan2016[usoc_working_complete$race == "Mixed"], na.rm = TRUE),
+    mean(usoc_working_complete$GCSE[usoc_working_complete$race == "Mixed"], na.rm = TRUE),
     mean(usoc_working_complete$runemp_current[usoc_working_complete$race == "Asian"], na.rm = TRUE),
     mean(usoc_working_complete$rearn_current[usoc_working_complete$race == "Asian"], na.rm = TRUE)
   )

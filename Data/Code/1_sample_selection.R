@@ -193,5 +193,33 @@ usoc_working <- usoc_working %>%
   ungroup() %>%
   arrange(pidp, year) %>%
   group_by(pidp) %>%
-  filter(min(age) <= 23, isWorkingFT == 1, lwage > 0) %>%
+  filter(min(age) <= 22, isWorkingFT == 1, lwage > 0) %>%
+  mutate(
+    OtherDip_exclude = ifelse(hiqual == "OtherDip", 1, 0),
+    OtherQual_exclude = ifelse(hiqual == "OtherQual", 1, 0),
+    hiqual = factor(hiqual,
+                    levels = c("Noqual", "GCSE", "ALevel", "Vocational", 
+                               "OtherQual", "OtherDip", "Bachelor", "HigherDeg"))
+  ) %>%
   ungroup()
+
+## MAKING THE COMPLETE SAMPLE
+vars <- c("lwage", "sex", "race", "numSib", "runemp_current", "rearn_current",
+          "hiqual", "expyrs", "runemp16_devi", "runemp18_devi", "runemp22_devi", 
+          "rearn16_devi", "rearn18_devi", "rearn22_devi", "hbachfee18_real", 
+          "runicount16", "PGLoan2016", "pidp")
+  
+usoc_working_complete <- usoc_working[complete.cases(usoc_working[, vars]), ]  %>% 
+  filter(!hiqual %in% c("OtherQual"))
+
+usoc_working_complete %>%
+  group_by(hiqual) %>%
+  summarise(
+    n = n(),
+    mean_lw = mean(lwage, na.rm = TRUE),
+    median_lw = median(lwage, na.rm = TRUE),
+    sd_lw = sd(lwage, na.rm = TRUE)
+  ) %>%
+  mutate(across(mean_lw:sd_lw, ~round(.x, 5)))
+
+
