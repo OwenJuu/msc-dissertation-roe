@@ -1,10 +1,8 @@
 # Preample
 install.packages("devtools", type = "win.binary")
 devtools::install_github("wklimowicz/tidyusoc")
-devtools::install_github("yuchang0321/IVQR")
 
 #Install the following packages if missing:
-library(IVQR)
 library(readxl)
 library(patchwork)
 library(tidyverse)
@@ -12,13 +10,13 @@ library(tidyusoc)
 library(dplyr)
 library(stringr)
 library(plm)
-library(gtsummary)
 library(fixest)      # TWFE / Sun & Abraham
-library(modelsummary)
 library(tsibble)
 library(splines)
 library(MASS)
-setwd("C:/Users/tp01040/Downloads/msc-dissertation-roe/Data")
+
+#Change this to the Data folder's directory C:/.../Data
+setwd("C:/Users/thuan/Downloads/msc-dissertation-roe/Data")
 
 # Compile raw data (run only once)
 usoc_convert(
@@ -46,6 +44,7 @@ custom_mappings <- function(cols) {
     "qfvoc10", "NVQ", "factor",
     "qfvoc12", "ONC", "factor",
     "qfvoc13", "BTEC", "factor",
+    "qfvoc14", "SCOTVEC", "factor",
   )
   return(custom_variables)
 }
@@ -69,12 +68,5 @@ gc()
 
 source("Code/1_sample_selection.R")
 source("Code/2_simple_model.R")
-
-##Exporting model's result
-etable(
-  simple_linear, iv_panel
-  #tex = TRUE,
-  #file = "results.tex"
-)
 source("Code/plots.R")
 
