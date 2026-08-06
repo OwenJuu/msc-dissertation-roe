@@ -4,33 +4,36 @@ usoc_working_filter <- usoc_working_complete %>%
 
 # SIMPLE LINEAR
 simple_linear <- feols(
-  lwage ~  GCSE + ALevel + VOC + Bachelor + HigherDeg + OtherDip + sqrt(expyrs) 
-  + sex + race + numSib | region + year + factor(birth_year),                           
+  lwage ~  ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs) 
+  + sex + race + numSib + OtherDip_exclude  | region + year + factor(birth_year),                           
   data    = usoc_working_complete,
   cluster = ~pidp
 )
 summary(simple_linear)
 
 ## BEST MODEL OVERALL
-iv_panel <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current + OtherDip_exclude |
+iv_panel <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current + OtherDip_exclude | 
                     ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs)
                   ~ runemp16_devi + runemp18_devi + runemp22_devi 
                   + rearn16_devi + rearn18_devi + rearn22_devi + 
                     hbachfee18_real + runicount16 + PGLoan2016, 
                   data = usoc_working_complete,
                   cluster = ~pidp)
-summary(iv_panel, stage = 2)
+summary(iv_panel, stage = 1:2)
 fsw(iv_panel)
 
 
-iv_panel <- feols(lwage ~ as.numeric(sex == "female") + numSib + runemp_current + rearn_current |
+## black SUBSAMPLE
+iv_panel_hetero <- feols(lwage ~ as.factor(sex == "female") + numSib + runemp_current + rearn_current + OtherDip_exclude |
                     ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs)
                   ~ runemp16_devi + runemp18_devi + runemp22_devi 
                   + rearn16_devi + rearn18_devi + rearn22_devi + 
                     hbachfee18_real + runicount16 + PGLoan2016, 
-                  data = usoc_working_filter,
+                  data = usoc_working_complete,
+                  subset = ~race == "Black" ,
                   cluster = ~pidp)
-summary(iv_panel, stage = 2)
+summary(iv_panel_hetero, stage = 2)
+#fsw(iv_panel_hetero)
 
 post1999 <- usoc_working %>%
   filter(year >= 1999)
@@ -58,14 +61,15 @@ library(ivreg)
 library(lmtest)
 library(sandwich)
 
-iv_panel_ivreg <- ivreg(
+iv_panel_ivreg <- ivreg::ivreg(
   lwage ~ sex + race + numSib + runemp_current + rearn_current +
     ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs) |
     sex + race + numSib + runemp_current + rearn_current +
     runemp16_devi + runemp18_devi + runemp22_devi +
     rearn16_devi + rearn18_devi + rearn22_devi +
     hbachfee18_real + runicount16 + PGLoan2016,
-  data = usoc_working
+  data = usoc_working_complete,
+  method = "LIML"
 )
 
 # Cluster-robust SEs by pidp, to match feols cluster = ~pidp

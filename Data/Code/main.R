@@ -2,6 +2,10 @@
 install.packages("devtools", type = "win.binary")
 devtools::install_github("wklimowicz/tidyusoc")
 
+install.packages(c("readxl", "patchwork", "tidyverse", "tidyusoc", "dplyr", 
+                   "stringr", "plm", "fixest", "tsibble", "splines", 
+                   "MASS", "OneSampleMR"))
+
 #Install the following packages if missing:
 library(readxl)
 library(patchwork)
@@ -15,6 +19,7 @@ library(tsibble)
 library(splines)
 library(MASS)
 library(OneSampleMR)
+library(ivreg2r)
 
 #Change this to the Data folder's directory C:/.../Data
 setwd("C:/Users/thuan/Downloads/msc-dissertation-roe/Data")
