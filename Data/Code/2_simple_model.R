@@ -4,7 +4,7 @@ usoc_working_filter <- usoc_working_complete %>%
 
 # SIMPLE LINEAR
 simple_linear <- feols(
-  lwage ~  ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs) 
+  lwage ~  GCSE + ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs) 
   + sex + race + numSib + OtherDip_exclude  | region + year + factor(birth_year),                           
   data    = usoc_working_complete,
   cluster = ~pidp
@@ -12,11 +12,35 @@ simple_linear <- feols(
 summary(simple_linear)
 
 ## BEST MODEL OVERALL
-iv_panel <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current + OtherDip_exclude | 
+iv_panel <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current 
+                  + OtherDip_exclude | 
                     ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs)
                   ~ runemp16_devi + runemp18_devi + runemp22_devi 
                   + rearn16_devi + rearn18_devi + rearn22_devi + 
                     hbachfee18_real + runicount16 + PGLoan2016, 
+                  data = usoc_working_complete,
+                  cluster = ~pidp)
+summary(iv_panel, stage = 1:2)
+fsw(iv_panel)
+
+## TEST MODEL
+iv_panel <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current 
+                  + OtherDip_exclude + as.factor(hiqual == "GCSE") | 
+                    ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs)
+                  ~ runemp16_devi + runemp18_devi + runemp22_devi 
+                  + rearn16_devi + rearn18_devi + rearn22_devi + 
+                    hbachfee18_real + runicount16 + PGLoan2016, 
+                  data = usoc_working_complete,
+                  cluster = ~pidp)
+summary(iv_panel, stage = 1:2)
+fsw(iv_panel)
+
+iv_panel <- feols(lwage ~ sex + race + numSib
+                  + OtherDip_exclude | factor(birth_year) + region + year|
+                    ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs)
+                  ~ runemp16_raw + runemp18_raw + runemp22_raw 
+                  + rearn16_raw + rearn18_raw + rearn22_raw 
+                  + PGLoan2016, 
                   data = usoc_working_complete,
                   cluster = ~pidp)
 summary(iv_panel, stage = 1:2)

@@ -22,7 +22,7 @@ library(OneSampleMR)
 library(ivreg2r)
 
 #Change this to the Data folder's directory C:/.../Data
-setwd("C:/Users/thuan/Downloads/msc-dissertation-roe/Data")
+setwd("C:/Users/tp01040/Downloads/msc-dissertation-roe/Data")
 
 # Compile raw data (run only once)
 usoc_convert(
@@ -75,4 +75,5 @@ gc()
 source("Code/1_sample_selection.R")
 source("Code/2_simple_model.R")
 source("Code/plots.R")
+source("Code/3_robustness.R")
 
