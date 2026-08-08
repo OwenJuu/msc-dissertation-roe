@@ -170,7 +170,8 @@ usoc_working <- usoc_working %>%
                 rearn_current, runemp16_avg, rearn16_avg, lwage, 
                 hiqual, GCSE, ALevel, VOC, Bachelor, HigherDeg, OtherDip, expyrs, 
                 expyrs2, Kaitz, ability, hbachfee18_real, home_bachfee, numSib, 
-                PGLoan2016, race, sex, momeduc, isWorkingFT) %>%
+                PGLoan2016, race, sex, momeduc, isWorkingFT,
+                GCSE_hq, ALevel_hq, VOC_hq, Bachelor_hq, HigherDeg_hq, OtherDip_hq) %>%
   
   
   #England only because education policy instruments is different for these four

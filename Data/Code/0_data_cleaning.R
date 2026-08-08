@@ -76,6 +76,13 @@ usoc_clean <- usoc %>%
     OtherDip = zoo::na.locf(OtherDip, na.rm = FALSE),
     OtherDip = replace(OtherDip, is.na(OtherDip), 0L),
     
+    GCSE_hq = ifelse(hiqual == "GCSE", 1L, 0L),
+    ALevel_hq = ifelse(hiqual == "ALevel", 1L, 0L),
+    VOC_hq = ifelse(hiqual == "Vocational", 1L, 0L),
+    Bachelor_hq = ifelse(hiqual == "Bachelor", 1L, 0L),
+    HigherDeg_hq = ifelse(hiqual == "HigherDeg", 1L, 0L),
+    OtherDip_hq = ifelse(hiqual == "OtherDip", 1L, 0L),
+    
     # ── Employment / experience ───────────────────────────────────────────
     jbstat = str_trim(str_to_lower(jbstat)),
     isWorkingFT = case_when(
