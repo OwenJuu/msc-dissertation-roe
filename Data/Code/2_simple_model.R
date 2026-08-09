@@ -42,31 +42,7 @@ iv_panel <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current
 summary(iv_panel, stage = 1:2)
 fsw(iv_panel)
 
-## TEST MODEL
-iv_panel <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current 
-                  + OtherDip_exclude + as.factor(hiqual == "GCSE") | 
-                    ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs)
-                  ~ runemp16_devi + runemp18_devi + runemp22_devi 
-                  + rearn16_devi + rearn18_devi + rearn22_devi + 
-                    hbachfee18_real + runicount16 + PGLoan2016, 
-                  data = usoc_working_complete,
-                  cluster = ~pidp)
-summary(iv_panel, stage = 1:2)
-fsw(iv_panel)
-
-iv_panel <- feols(lwage ~ sex + race + numSib
-                  + OtherDip_exclude | factor(birth_year) + region + year|
-                    ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs)
-                  ~ runemp16_raw + runemp18_raw + runemp22_raw 
-                  + rearn16_raw + rearn18_raw + rearn22_raw 
-                  + PGLoan2016, 
-                  data = usoc_working_complete,
-                  cluster = ~pidp)
-summary(iv_panel, stage = 1:2)
-fsw(iv_panel)
-
-
-## black SUBSAMPLE
+## HETEROGENEITY
 iv_panel_hetero <- feols(lwage ~ as.factor(sex == "female") + numSib + runemp_current + rearn_current + OtherDip_exclude |
                     ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs)
                   ~ runemp16_devi + runemp18_devi + runemp22_devi 
@@ -76,12 +52,12 @@ iv_panel_hetero <- feols(lwage ~ as.factor(sex == "female") + numSib + runemp_cu
                   subset = ~race == "Black" ,
                   cluster = ~pidp)
 summary(iv_panel_hetero, stage = 2)
-#fsw(iv_panel_hetero)
 
-post1999 <- usoc_working_complete %>%
-  filter(year >= 1999)
 
-## FULL FLEDGE MODEL
+## BSPLINE OF KAITZ INDEX: FULL FLEDGE MODEL
+post2010 <- usoc_working_complete %>%
+  filter(year >= 2010)
+
 model_np <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current + OtherDip_exclude 
                   + bs(Kaitz, 4) |
                     ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs) +
@@ -93,11 +69,10 @@ model_np <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current +
                     runemp16_devi:bs(Kaitz, 4) + runemp18_devi:bs(Kaitz, 4) + runemp22_devi:bs(Kaitz, 4) +
                     rearn16_devi:bs(Kaitz, 4) + rearn18_devi:bs(Kaitz, 4) + rearn22_devi:bs(Kaitz, 4) +
                     hbachfee18_real:bs(Kaitz, 4) + runicount16:bs(Kaitz, 4) + PGLoan2016:bs(Kaitz, 4),  
-                  data    = post1999,
+                  data    = post2010,
                   cluster = ~pidp + year)
 summary(model_np, stage = 2)
 fsw(model_np)
-
 
 model_np <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current + OtherDip_exclude 
                   + bs(Kaitz, 4) |
@@ -114,4 +89,3 @@ model_np <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current +
                   cluster = ~pidp + year)
 summary(model_np, stage = 2)
 fsw(model_np)
-
