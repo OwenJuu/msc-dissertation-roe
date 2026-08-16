@@ -48,9 +48,10 @@ model_np <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current +
 summary(model_np, stage = 2)
 
 
-### discrete kaitz model
+### USING REGIONAL KAITZ
+## Discrete year model
 model_discrete_level <- feols(
-  lwage ~ sex + race + numSib + OtherDip_exclude + factor(year)|
+  lwage ~ sex + race + numSib + OtherDip_exclude | year + region |
     i(year, ALevel) + i(year, VOC) + i(year, Bachelor) + i(year, HigherDeg) + 
     i(year, sqrt(expyrs))
   ~ hbachfee18_real + runicount16 + PGLoan2016 + runemp16_devi + runemp18_devi 
@@ -63,11 +64,69 @@ model_discrete_level <- feols(
 )
 summary(model_discrete_level, stage = 2)
 
+par(
+  mar = c(2.5, 4.0, 0.3, 0.5)
+)
+iplot(
+  model_discrete_level, i.select = 4, main = "", xlab = "Year", ylab = "Coefficient",
+  pt.join = TRUE, ref.line = 0, grid = FALSE
+)
+
 par(mfrow = c(2, 2))
 iplot(model_discrete_level, i.select = 1, main = "ALevel")
-iplot(model_discrete_level, i.select = 2, main = "VOC")
+iplot(model_discrete_level, i.select = 2, main = "Vocational")
 iplot(model_discrete_level, i.select = 3, main = "Bachelor")
-iplot(model_discrete_level, i.select = 4, main = "HigherDeg")
+iplot(model_discrete_level, i.select = 4, main = "Higher Degree")
 par(mfrow = c(1, 1))
 
 iplot(model_discrete_level, i.select = 5, main = "sqrt expyrs")
+
+
+## Regional Kaitz model
+model_npr <- feols(lwage ~ sex + race + numSib + OtherDip_exclude + runemp_current + rearn_current +
+                   + bs(rKaitz, 4)  | year |
+                     ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs) +
+                     bs(rKaitz, 4):ALevel + VOC:bs(rKaitz, 4) + Bachelor:bs(rKaitz, 4) +
+                     HigherDeg:bs(rKaitz, 4) + bs(rKaitz, 4):sqrt(expyrs)
+                   ~ runemp16_devi + runemp18_devi + runemp22_devi 
+                   + rearn16_devi + rearn18_devi + rearn22_devi + 
+                     hbachfee18_real + runicount16 + PGLoan2016 +
+                     runemp16_devi:bs(rKaitz, 4) + runemp18_devi:bs(rKaitz, 4) + runemp22_devi:bs(rKaitz, 4) +
+                     rearn16_devi:bs(rKaitz, 4) + rearn18_devi:bs(rKaitz, 4) + rearn22_devi:bs(rKaitz, 4) +
+                     hbachfee18_real:bs(rKaitz, 4) + runicount16:bs(rKaitz, 4) + PGLoan2016:bs(rKaitz, 4),  
+                   data    = post2010,
+                   cluster = ~pidp + year)
+summary(model_npr, stage = 2)
+
+
+## kaitz MODEL WITH DF = 3 AND DF=5
+model_np5 <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current + OtherDip_exclude 
+                  + bs(Kaitz, 5) |
+                    ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs) +
+                    bs(Kaitz, 5):ALevel + VOC:bs(Kaitz, 5) + Bachelor:bs(Kaitz, 5) +
+                    HigherDeg:bs(Kaitz, 5) + bs(Kaitz, 5):sqrt(expyrs)
+                  ~ runemp16_devi + runemp18_devi + runemp22_devi 
+                  + rearn16_devi + rearn18_devi + rearn22_devi + 
+                    hbachfee18_real + runicount16 + PGLoan2016 +
+                    runemp16_devi:bs(Kaitz, 5) + runemp18_devi:bs(Kaitz, 5) + runemp22_devi:bs(Kaitz, 5) +
+                    rearn16_devi:bs(Kaitz, 5) + rearn18_devi:bs(Kaitz, 4) + rearn22_devi:bs(Kaitz, 5) +
+                    hbachfee18_real:bs(Kaitz, 5) + runicount16:bs(Kaitz, 5) + PGLoan2016:bs(Kaitz, 5),  
+                  data    = post2010,
+                  cluster = ~pidp + year)
+summary(model_np5, stage = 2)
+
+## kaitz MODEL WITH DF = 3 AND DF=5
+model_np3 <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current + OtherDip_exclude 
+                   + bs(Kaitz, 3) |
+                     ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs) +
+                     bs(Kaitz, 3):ALevel + VOC:bs(Kaitz, 3) + Bachelor:bs(Kaitz, 3) +
+                     HigherDeg:bs(Kaitz, 3) + bs(Kaitz, 3):sqrt(expyrs)
+                   ~ runemp16_devi + runemp18_devi + runemp22_devi 
+                   + rearn16_devi + rearn18_devi + rearn22_devi + 
+                     hbachfee18_real + runicount16 + PGLoan2016 +
+                     runemp16_devi:bs(Kaitz, 3) + runemp18_devi:bs(Kaitz, 3) + runemp22_devi:bs(Kaitz, 3) +
+                     rearn16_devi:bs(Kaitz, 3) + rearn18_devi:bs(Kaitz, 3) + rearn22_devi:bs(Kaitz, 3) +
+                     hbachfee18_real:bs(Kaitz, 3) + runicount16:bs(Kaitz, 3) + PGLoan2016:bs(Kaitz, 3),  
+                   data    = post2010,
+                   cluster = ~pidp + year)
+summary(model_np3, stage = 2)

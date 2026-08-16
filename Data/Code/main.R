@@ -14,7 +14,7 @@ library(tidyusoc)
 library(dplyr)
 library(stringr)
 library(plm)
-library(fixest)      # TWFE / Sun & Abraham
+library(fixest)     
 library(tsibble)
 library(splines)
 library(MASS)

@@ -47,6 +47,13 @@ runicount <- read_excel("External Data/regional.xlsx", sheet = "uniperpop") %>%
 
 CPI <- read_excel("External Data/regional.xlsx", sheet = "CPI")
 
+rKaitz <- read_excel("External Data/regional.xlsx", sheet = "rKaitz") %>%
+  pivot_longer(
+    cols = -year,
+    names_to = "region",
+    values_to = "rKaitz"
+  )
+
 usoc_working <- usoc_clean %>%
   # Instrument: Raw regional unemployment at 16
   left_join(runemp_raw, by = c("year16" = "year", "region16" = "region")) %>%
@@ -125,7 +132,10 @@ usoc_working <- usoc_clean %>%
   dplyr::rename(CPI18 = CPI)  %>%
   
   # CPI at current time
-  left_join(CPI, by = c("year"))
+  left_join(CPI, by = c("year")) %>%
+  
+  # Regional Kaitz index
+  left_join(rKaitz, by = c("year", "region"))
 
 ## Real minimum wage and CPI
 mw_cpi <- read_excel("External Data/mw_cpi.xlsx", sheet = "real_converted")
@@ -167,7 +177,7 @@ usoc_working <- usoc_working %>%
                 runemp22_raw, runemp16_devi, runemp18_devi, runemp22_devi, 
                 runemp_current, rearn16_raw, rearn18_raw, rearn22_raw, 
                 rearn16_devi, rearn18_devi, rearn22_devi, 
-                rearn_current, runemp16_avg, rearn16_avg, lwage, 
+                rearn_current, runemp16_avg, rearn16_avg, rKaitz, lwage, 
                 hiqual, GCSE, ALevel, VOC, Bachelor, HigherDeg, OtherDip, expyrs, 
                 expyrs2, Kaitz, ability, hbachfee18_real, home_bachfee, numSib, 
                 PGLoan2016, race, sex, momeduc, isWorkingFT,
@@ -222,5 +232,3 @@ usoc_working_complete %>%
     sd_lw = sd(lwage, na.rm = TRUE)
   ) %>%
   mutate(across(mean_lw:sd_lw, ~round(.x, 5)))
-
-
