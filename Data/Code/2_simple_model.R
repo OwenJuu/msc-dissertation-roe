@@ -1,7 +1,3 @@
-usoc_working_filter <- usoc_working_complete %>%
-  filter(race == "Asian")
-
-
 # SIMPLE LINEAR
 simple_linear <- feols(
   lwage ~  GCSE + ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs) 
@@ -23,27 +19,19 @@ iv_panel <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current
 summary(iv_panel, stage = 1:2)
 fsw(iv_panel)
 
-iv_panel <- feols(lwage ~ sex + race + numSib + runemp_current + rearn_current 
-                  + OtherDip_exclude | 
-                    ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs)
-                  ~ runemp16_devi + runemp18_devi + runemp22_devi 
-                  + rearn16_devi + rearn18_devi + rearn22_devi + 
-                    hbachfee18_real + runicount16 + PGLoan2016, 
-                  data = usoc_working_complete,
-                  cluster = ~pidp)
-summary(iv_panel, stage = 1:2)
-fsw(iv_panel)
-
 ## HETEROGENEITY
+usoc_working_filter <- usoc_working_complete %>%
+  filter(race == "Mixed")
+
 iv_panel_hetero <- feols(lwage ~ as.factor(sex == "female") + numSib + runemp_current + rearn_current + OtherDip_exclude |
                     ALevel + VOC + Bachelor + HigherDeg + sqrt(expyrs)
                   ~ runemp16_devi + runemp18_devi + runemp22_devi 
                   + rearn16_devi + rearn18_devi + rearn22_devi + 
                     hbachfee18_real + runicount16 + PGLoan2016, 
-                  data = usoc_working_complete,
-                  subset = ~race == "Black" ,
+                  data = usoc_working_filter,
                   cluster = ~pidp)
-summary(iv_panel_hetero, stage = 2)
+summary(iv_panel_hetero, stage = 1)
+fsw(iv_panel_hetero)
 
 
 ## BSPLINE OF KAITZ INDEX: FULL FLEDGE MODEL

@@ -9,23 +9,23 @@ mw_grid <- seq(min(post2010$Kaitz, na.rm = TRUE),
 bk <- attr(bs(post2010$Kaitz, df = 4), "Boundary.knots")
 B  <- bs(mw_grid, df = 4, Boundary.knots = bk)  # 200 x 3 matrix
 
-# FIX: model_np DOES have a standalone HigherDeg term (fit_HigherDeg = -25.91),
-# so the return is beta_HigherDeg + gamma' * b(w), not just gamma' * b(w)
-param_names <- c("fit_HigherDeg",
-                 "fit_HigherDeg:bs(Kaitz, 4)1",
-                 "fit_HigherDeg:bs(Kaitz, 4)2",
-                 "fit_HigherDeg:bs(Kaitz, 4)3",
-                 "fit_HigherDeg:bs(Kaitz, 4)4")
+# FIX: model_np DOES have a standalone sqrt(expyrs) term (fit_sqrt(expyrs) = -25.91),
+# so the return is beta_sqrt(expyrs) + gamma' * b(w), not just gamma' * b(w)
+param_names <- c("fit_sqrt(expyrs)",
+                 "fit_sqrt(expyrs):bs(Kaitz, 4)1",
+                 "fit_sqrt(expyrs):bs(Kaitz, 4)2",
+                 "fit_sqrt(expyrs):bs(Kaitz, 4)3",
+                 "fit_sqrt(expyrs):bs(Kaitz, 4)4")
 theta_A <- coefs[param_names]
 
-# FIX: gradient vector needs a leading 1 to multiply against fit_HigherDeg
+# FIX: gradient vector needs a leading 1 to multiply against fit_sqrt(expyrs)
 C <- cbind(1, B)   # 200 x 4
 
 # Marginal return vector (200 x 1)
 returns <- C %*% theta_A
 
 # Return(w) = c(w)' theta, where c(w) = [1, b1(w), b2(w), b3(w)]
-# leading 1 restored to pick up the base HigherDeg coefficient
+# leading 1 restored to pick up the base sqrt(expyrs) coefficient
 V_sub <- V[param_names, param_names]   # now 4x4, includes base term's variance
 se_returns <- sapply(1:nrow(C), function(i) {
   c_w <- C[i, ]                        # 4 x 1 gradient: c(1, B[i,])
@@ -69,23 +69,23 @@ mw_grid <- seq(min(post2010$rKaitz, na.rm = TRUE),
 bk <- attr(bs(post2010$rKaitz, df = 4), "Boundary.knots")
 B  <- bs(mw_grid, df = 4, Boundary.knots = bk)  # 200 x 3 matrix
 
-# FIX: model_np DOES have a standalone HigherDeg term (fit_HigherDeg = -25.91),
-# so the return is beta_HigherDeg + gamma' * b(w), not just gamma' * b(w)
-param_names <- c("fit_HigherDeg",
-                 "fit_HigherDeg:bs(rKaitz, 4)1",
-                 "fit_HigherDeg:bs(rKaitz, 4)2",
-                 "fit_HigherDeg:bs(rKaitz, 4)3",
-                 "fit_HigherDeg:bs(rKaitz, 4)4")
+# FIX: model_np DOES have a standalone sqrt(expyrs) term (fit_sqrt(expyrs) = -25.91),
+# so the return is beta_sqrt(expyrs) + gamma' * b(w), not just gamma' * b(w)
+param_names <- c("fit_sqrt(expyrs)",
+                 "fit_sqrt(expyrs):bs(rKaitz, 4)1",
+                 "fit_sqrt(expyrs):bs(rKaitz, 4)2",
+                 "fit_sqrt(expyrs):bs(rKaitz, 4)3",
+                 "fit_sqrt(expyrs):bs(rKaitz, 4)4")
 theta_A <- coefs[param_names]
 
-# FIX: gradient vector needs a leading 1 to multiply against fit_HigherDeg
+# FIX: gradient vector needs a leading 1 to multiply against fit_sqrt(expyrs)
 C <- cbind(1, B)   # 200 x 4
 
 # Marginal return vector (200 x 1)
 returns <- C %*% theta_A
 
 # Return(w) = c(w)' theta, where c(w) = [1, b1(w), b2(w), b3(w)]
-# leading 1 restored to pick up the base HigherDeg coefficient
+# leading 1 restored to pick up the base sqrt(expyrs) coefficient
 V_sub <- V[param_names, param_names]   # now 4x4, includes base term's variance
 se_returns <- sapply(1:nrow(C), function(i) {
   c_w <- C[i, ]                        # 4 x 1 gradient: c(1, B[i,])
@@ -129,24 +129,24 @@ mw_grid <- seq(min(post2010$Kaitz, na.rm = TRUE),
 bk <- attr(bs(post2010$Kaitz, df = 5), "Boundary.knots")
 B  <- bs(mw_grid, df = 5, Boundary.knots = bk)  # 200 x 3 matrix
 
-# FIX: model_np DOES have a standalone HigherDeg term (fit_HigherDeg = -25.91),
-# so the return is beta_HigherDeg + gamma' * b(w), not just gamma' * b(w)
-param_names <- c("fit_HigherDeg",
-                 "fit_HigherDeg:bs(Kaitz, 5)1",
-                 "fit_HigherDeg:bs(Kaitz, 5)2",
-                 "fit_HigherDeg:bs(Kaitz, 5)3",
-                 "fit_HigherDeg:bs(Kaitz, 5)4",
-                 "fit_HigherDeg:bs(Kaitz, 5)5")
+# FIX: model_np DOES have a standalone sqrt(expyrs) term (fit_sqrt(expyrs) = -25.91),
+# so the return is beta_sqrt(expyrs) + gamma' * b(w), not just gamma' * b(w)
+param_names <- c("fit_sqrt(expyrs)",
+                 "fit_sqrt(expyrs):bs(Kaitz, 5)1",
+                 "fit_sqrt(expyrs):bs(Kaitz, 5)2",
+                 "fit_sqrt(expyrs):bs(Kaitz, 5)3",
+                 "fit_sqrt(expyrs):bs(Kaitz, 5)4",
+                 "fit_sqrt(expyrs):bs(Kaitz, 5)5")
 theta_A <- coefs[param_names]
 
-# FIX: gradient vector needs a leading 1 to multiply against fit_HigherDeg
+# FIX: gradient vector needs a leading 1 to multiply against fit_sqrt(expyrs)
 C <- cbind(1, B)   # 200 x 4
 
 # Marginal return vector (200 x 1)
 returns <- C %*% theta_A
 
 # Return(w) = c(w)' theta, where c(w) = [1, b1(w), b2(w), b3(w)]
-# leading 1 restored to pick up the base HigherDeg coefficient
+# leading 1 restored to pick up the base sqrt(expyrs) coefficient
 V_sub <- V[param_names, param_names]   # now 4x4, includes base term's variance
 se_returns <- sapply(1:nrow(C), function(i) {
   c_w <- C[i, ]                        # 4 x 1 gradient: c(1, B[i,])
@@ -189,22 +189,22 @@ mw_grid <- seq(min(post2010$Kaitz, na.rm = TRUE),
 bk <- attr(bs(post2010$Kaitz, df = 3), "Boundary.knots")
 B  <- bs(mw_grid, df = 3, Boundary.knots = bk)  # 200 x 3 matrix
 
-# FIX: model_np DOES have a standalone HigherDeg term (fit_HigherDeg = -25.91),
-# so the return is beta_HigherDeg + gamma' * b(w), not just gamma' * b(w)
-param_names <- c("fit_HigherDeg",
-                 "fit_HigherDeg:bs(Kaitz, 3)1",
-                 "fit_HigherDeg:bs(Kaitz, 3)2",
-                 "fit_HigherDeg:bs(Kaitz, 3)3")
+# FIX: model_np DOES have a standalone sqrt(expyrs) term (fit_sqrt(expyrs) = -25.91),
+# so the return is beta_sqrt(expyrs) + gamma' * b(w), not just gamma' * b(w)
+param_names <- c("fit_sqrt(expyrs)",
+                 "fit_sqrt(expyrs):bs(Kaitz, 3)1",
+                 "fit_sqrt(expyrs):bs(Kaitz, 3)2",
+                 "fit_sqrt(expyrs):bs(Kaitz, 3)3")
 theta_A <- coefs[param_names]
 
-# FIX: gradient vector needs a leading 1 to multiply against fit_HigherDeg
+# FIX: gradient vector needs a leading 1 to multiply against fit_sqrt(expyrs)
 C <- cbind(1, B)   # 200 x 4
 
 # Marginal return vector (200 x 1)
 returns <- C %*% theta_A
 
 # Return(w) = c(w)' theta, where c(w) = [1, b1(w), b2(w), b3(w)]
-# leading 1 restored to pick up the base HigherDeg coefficient
+# leading 1 restored to pick up the base sqrt(expyrs) coefficient
 V_sub <- V[param_names, param_names]   # now 4x4, includes base term's variance
 se_returns <- sapply(1:nrow(C), function(i) {
   c_w <- C[i, ]                        # 4 x 1 gradient: c(1, B[i,])

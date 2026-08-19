@@ -51,7 +51,7 @@ summary(model_np, stage = 2)
 ### USING REGIONAL KAITZ
 ## Discrete year model
 model_discrete_level <- feols(
-  lwage ~ sex + race + numSib + OtherDip_exclude | year + region |
+  lwage ~ sex + race + numSib + OtherDip_exclude  + runemp_current + rearn_current | year |
     i(year, ALevel) + i(year, VOC) + i(year, Bachelor) + i(year, HigherDeg) + 
     i(year, sqrt(expyrs))
   ~ hbachfee18_real + runicount16 + PGLoan2016 + runemp16_devi + runemp18_devi 
@@ -65,21 +65,16 @@ model_discrete_level <- feols(
 summary(model_discrete_level, stage = 2)
 
 par(
-  mar = c(2.5, 4.0, 0.3, 0.5)
+  mar = c(3, 3, 0.3, 0.5)
 )
 iplot(
-  model_discrete_level, i.select = 4, main = "", xlab = "Year", ylab = "Coefficient",
+  model_discrete_level, i.select = 5, main = "", xlab = "", ylab = "",
   pt.join = TRUE, ref.line = 0, grid = FALSE
 )
+par(mar = c(2.5, 4.0, 0.3, 0.5))
 
-par(mfrow = c(2, 2))
-iplot(model_discrete_level, i.select = 1, main = "ALevel")
-iplot(model_discrete_level, i.select = 2, main = "Vocational")
-iplot(model_discrete_level, i.select = 3, main = "Bachelor")
-iplot(model_discrete_level, i.select = 4, main = "Higher Degree")
-par(mfrow = c(1, 1))
-
-iplot(model_discrete_level, i.select = 5, main = "sqrt expyrs")
+mtext("Year", side = 1, line = 1.1)
+mtext("Coefficient", side = 2, line = 3)
 
 
 ## Regional Kaitz model
