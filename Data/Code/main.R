@@ -2,6 +2,10 @@
 install.packages("devtools", type = "win.binary")
 devtools::install_github("wklimowicz/tidyusoc")
 
+install.packages(c("readxl", "patchwork", "tidyverse", "tidyusoc", "dplyr", 
+                   "stringr", "plm", "fixest", "tsibble", "splines", 
+                   "MASS", "OneSampleMR"))
+
 #Install the following packages if missing:
 library(readxl)
 library(patchwork)
@@ -10,13 +14,15 @@ library(tidyusoc)
 library(dplyr)
 library(stringr)
 library(plm)
-library(fixest)      # TWFE / Sun & Abraham
+library(fixest)     
 library(tsibble)
 library(splines)
 library(MASS)
+library(OneSampleMR)
+library(ivreg2r)
 
 #Change this to the Data folder's directory C:/.../Data
-setwd("C:/Users/thuan/Downloads/msc-dissertation-roe/Data")
+setwd("C:/Users/tp01040/Downloads/msc-dissertation-roe/Data")
 
 # Compile raw data (run only once)
 usoc_convert(
@@ -69,4 +75,5 @@ gc()
 source("Code/1_sample_selection.R")
 source("Code/2_simple_model.R")
 source("Code/plots.R")
+source("Code/3_robustness.R")
 

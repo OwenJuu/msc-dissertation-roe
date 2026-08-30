@@ -47,6 +47,13 @@ runicount <- read_excel("External Data/regional.xlsx", sheet = "uniperpop") %>%
 
 CPI <- read_excel("External Data/regional.xlsx", sheet = "CPI")
 
+rKaitz <- read_excel("External Data/regional.xlsx", sheet = "rKaitz") %>%
+  pivot_longer(
+    cols = -year,
+    names_to = "region",
+    values_to = "rKaitz"
+  )
+
 usoc_working <- usoc_clean %>%
   # Instrument: Raw regional unemployment at 16
   left_join(runemp_raw, by = c("year16" = "year", "region16" = "region")) %>%
@@ -125,7 +132,10 @@ usoc_working <- usoc_clean %>%
   dplyr::rename(CPI18 = CPI)  %>%
   
   # CPI at current time
-  left_join(CPI, by = c("year"))
+  left_join(CPI, by = c("year")) %>%
+  
+  # Regional Kaitz index
+  left_join(rKaitz, by = c("year", "region"))
 
 ## Real minimum wage and CPI
 mw_cpi <- read_excel("External Data/mw_cpi.xlsx", sheet = "real_converted")
@@ -167,10 +177,11 @@ usoc_working <- usoc_working %>%
                 runemp22_raw, runemp16_devi, runemp18_devi, runemp22_devi, 
                 runemp_current, rearn16_raw, rearn18_raw, rearn22_raw, 
                 rearn16_devi, rearn18_devi, rearn22_devi, 
-                rearn_current, runemp16_avg, rearn16_avg, lwage, 
+                rearn_current, runemp16_avg, rearn16_avg, rKaitz, lwage, 
                 hiqual, GCSE, ALevel, VOC, Bachelor, HigherDeg, OtherDip, expyrs, 
                 expyrs2, Kaitz, ability, hbachfee18_real, home_bachfee, numSib, 
-                PGLoan2016, race, sex, momeduc, isWorkingFT) %>%
+                PGLoan2016, race, sex, momeduc, isWorkingFT,
+                GCSE_hq, ALevel_hq, VOC_hq, Bachelor_hq, HigherDeg_hq, OtherDip_hq) %>%
   
   
   #England only because education policy instruments is different for these four
@@ -193,5 +204,31 @@ usoc_working <- usoc_working %>%
   ungroup() %>%
   arrange(pidp, year) %>%
   group_by(pidp) %>%
-  filter(min(age) <= 23, isWorkingFT == 1, lwage > 0) %>%
+  filter(min(age) <= 22, isWorkingFT == 1, lwage > 0) %>%
+  mutate(
+    OtherDip_exclude = ifelse(hiqual == "OtherDip", 1, 0),
+    OtherQual_exclude = ifelse(hiqual == "OtherQual", 1, 0),
+    hiqual = factor(hiqual,
+                    levels = c("Noqual", "GCSE", "ALevel", "Vocational", 
+                               "OtherQual", "OtherDip", "Bachelor", "HigherDeg"))
+  ) %>%
   ungroup()
+
+## MAKING THE COMPLETE SAMPLE
+vars <- c("lwage", "sex", "race", "numSib", "runemp_current", "rearn_current",
+          "hiqual", "expyrs", "runemp16_devi", "runemp18_devi", "runemp22_devi", 
+          "rearn16_devi", "rearn18_devi", "rearn22_devi", "hbachfee18_real", 
+          "runicount16", "PGLoan2016", "pidp")
+  
+usoc_working_complete <- usoc_working[complete.cases(usoc_working[, vars]), ]  %>% 
+  filter(!hiqual %in% c("OtherQual"))
+
+usoc_working_complete %>%
+  group_by(hiqual) %>%
+  summarise(
+    n = n(),
+    mean_lw = mean(lwage, na.rm = TRUE),
+    median_lw = median(lwage, na.rm = TRUE),
+    sd_lw = sd(lwage, na.rm = TRUE)
+  ) %>%
+  mutate(across(mean_lw:sd_lw, ~round(.x, 5)))

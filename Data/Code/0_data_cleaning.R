@@ -40,26 +40,25 @@ usoc_clean <- usoc %>%
       TRUE ~ NA_integer_
     ),
     VOC = zoo::na.locf(VOC, na.rm = FALSE),
-    VOC = replace(VOC, is.na(VOC), 0L),
+    VOC = replace(VOC, is.na(VOC), 0L), # VOC = ever taken a vocational degree
     
     hiqual_dv  = str_trim(str_to_lower(hiqual_dv)),
     qfhigh_dv  = str_trim(str_to_lower(qfhigh_dv)),
     hiqual = case_when(
       hiqual_dv %in% c("no qualification", "no qual")           ~ "Noqual",
       hiqual_dv == "gcse etc"                                   ~ "GCSE",
-      hiqual_dv %in% c("a level etc", "a-level etc") & VOC == 1 ~ "Vocational",
-      hiqual_dv %in% c("a level etc", "a-level etc")            ~ "ALevel",
+      hiqual_dv %in% c("a level etc", "a-level etc") & VOC == 0 ~ "ALevel",
+      hiqual_dv %in% c("a level etc", "a-level etc")            ~ "Vocational",
       hiqual_dv == "degree" & qfhigh_dv == "higher degree"      ~ "HigherDeg",
       hiqual_dv == "degree"                                     ~ "Bachelor",
       hiqual_dv %in% c("other higher", "other higher degree")   ~ "OtherDip",
+      hiqual_dv %in% c("other qualification", "other qual")   ~ "OtherQual",
       TRUE                                                      ~ NA_character_
     ),
 
     # ── Binary education dummies ──────────────────────────────────────────
     # No qual < GCSE < ALevel < Bachelor < HigherDeg. OtherDip stands alone
-    GCSE = case_when(hiqual == "GCSE" ~ 1L, TRUE ~ NA_integer_),
-    GCSE = zoo::na.locf(GCSE, na.rm = FALSE),
-    GCSE = replace(GCSE, is.na(GCSE), 0L),
+    GCSE = if_else(hiqual != "Noqual", 1L, 0L),
     
     ALevel = case_when(hiqual == "ALevel" ~ 1L, TRUE ~ NA_integer_),
     ALevel = zoo::na.locf(ALevel, na.rm = FALSE),
@@ -76,6 +75,13 @@ usoc_clean <- usoc %>%
     OtherDip = case_when(hiqual == "OtherDip" ~ 1L, TRUE ~ NA_integer_),
     OtherDip = zoo::na.locf(OtherDip, na.rm = FALSE),
     OtherDip = replace(OtherDip, is.na(OtherDip), 0L),
+    
+    GCSE_hq = ifelse(hiqual == "GCSE", 1L, 0L),
+    ALevel_hq = ifelse(hiqual == "ALevel", 1L, 0L),
+    VOC_hq = ifelse(hiqual == "Vocational", 1L, 0L),
+    Bachelor_hq = ifelse(hiqual == "Bachelor", 1L, 0L),
+    HigherDeg_hq = ifelse(hiqual == "HigherDeg", 1L, 0L),
+    OtherDip_hq = ifelse(hiqual == "OtherDip", 1L, 0L),
     
     # ── Employment / experience ───────────────────────────────────────────
     jbstat = str_trim(str_to_lower(jbstat)),
@@ -208,7 +214,7 @@ usoc_clean <- usoc %>%
   mutate(
     hiqual = factor(hiqual,
                     levels = c("Noqual", "GCSE", "ALevel", "Vocational", 
-                               "OtherDip", "Bachelor", "HigherDeg")),
+                               "OtherQual", "OtherDip", "Bachelor", "HigherDeg")),
     race = factor(race,
       levels = c("White", "Asian", "Black", "Mixed", "Other")),
     sex = factor(sex,
